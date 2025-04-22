@@ -400,3 +400,6 @@ build_files
 raylib-master
 Makefile
 /*.sln
+
+compile_commands.json
+compile_commands/

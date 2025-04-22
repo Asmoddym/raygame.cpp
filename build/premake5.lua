@@ -1,3 +1,5 @@
+require('export-compile-commands')
+
 newoption
 {
 	trigger = "graphics",

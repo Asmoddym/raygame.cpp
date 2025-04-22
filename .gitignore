@@ -403,3 +403,4 @@ Makefile
 
 compile_commands.json
 compile_commands/
+build/export-compile-commands/

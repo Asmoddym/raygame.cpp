@@ -169,8 +169,9 @@ if (downloadRaylib) then
 
         links {"raylib"}
 
-        cdialect "C17"
         cppdialect "C++17"
+    buildoptions { "-std=c++17" }
+
 
         includedirs {raylib_dir .. "/src" }
         includedirs {raylib_dir .."/src/external" }

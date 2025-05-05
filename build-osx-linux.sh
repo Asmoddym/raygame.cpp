@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+TYPE=debug
+
 rm -rf bin/$TYPE/raygame
 
 pushd build
@@ -14,4 +16,4 @@ popd
 
 cp ./compile_commands/debug_x64.json ./compile_commands.json
 
-# ./bin/$TYPE/raygame
+./bin/$TYPE/raygame

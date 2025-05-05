@@ -164,14 +164,12 @@ if (downloadRaylib) then
         }
         files {"../src/**.c", "../src/**.cpp", "../src/**.h", "../src/**.hpp", "../include/**.h", "../include/**.hpp"}
     
-        includedirs { "../src" }
+        includedirs { "../src", "../src/engine" }
         includedirs { "../include" }
 
         links {"raylib"}
 
         cppdialect "C++17"
-    buildoptions { "-std=c++17" }
-
 
         includedirs {raylib_dir .. "/src" }
         includedirs {raylib_dir .."/src/external" }
@@ -190,12 +188,15 @@ if (downloadRaylib) then
             defines{"_WIN32"}
             links {"winmm", "gdi32", "opengl32"}
             libdirs {"../bin/%{cfg.buildcfg}"}
+            -- buildoptions { "-std:c++17" }
 
         filter "system:linux"
             links {"pthread", "m", "dl", "rt", "X11"}
+            buildoptions { "-std=c++17" }
 
         filter "system:macosx"
             links {"OpenGL.framework", "Cocoa.framework", "IOKit.framework", "CoreFoundation.framework", "CoreAudio.framework", "CoreVideo.framework", "AudioToolbox.framework"}
+            buildoptions { "-std=c++17" }
 
         filter{}
 		

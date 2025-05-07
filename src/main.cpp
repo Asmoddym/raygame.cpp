@@ -2,7 +2,7 @@
 #include "scene/MainScene.hpp"
 
 int main() {
-  Application app;
+  macro::Application app;
 
   app.run<MainScene>();
 

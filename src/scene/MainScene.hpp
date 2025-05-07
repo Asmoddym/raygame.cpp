@@ -3,7 +3,7 @@
 
 # include "engine/Scene.hpp"
 
-class MainScene : public Scene {
+class MainScene : public macro::Scene {
   public:
     MainScene() : Scene { "MainScene" } {}
     virtual ~MainScene() override {}

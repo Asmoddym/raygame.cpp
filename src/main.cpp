@@ -4,7 +4,8 @@
 int main() {
   macro::Application app;
 
-  app.run<MainScene>();
+  app.registerMainScene<MainScene>();
+  app.run();
 
   return 0;
 }

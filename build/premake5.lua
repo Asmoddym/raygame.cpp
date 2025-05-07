@@ -188,7 +188,6 @@ if (downloadRaylib) then
             defines{"_WIN32"}
             links {"winmm", "gdi32", "opengl32"}
             libdirs {"../bin/%{cfg.buildcfg}"}
-            -- buildoptions { "-std:c++17" }
 
         filter "system:linux"
             links {"pthread", "m", "dl", "rt", "X11"}

@@ -3,13 +3,11 @@
 
 # include "utils/Log.hpp"
 # include "SceneManager.hpp"
-# include "InputManager.hpp"
 
 namespace macro {
   class Application {
     private:
       SceneManager _scene_manager;
-      InputManager _input_manager;
 
     public:
       Application();

@@ -1,7 +1,6 @@
 #ifndef MACRO_APPLICATION_HPP_
 # define MACRO_APPLICATION_HPP_
 
-# include "utils/Log.hpp"
 # include "SceneManager.hpp"
 
 namespace macro {
@@ -13,14 +12,16 @@ namespace macro {
       Application();
       ~Application();
 
+      void run();
+
       template<typename T>
         void registerMainScene() {
-          _scene_manager.create<T>();
+          auto scene_ptr = _scene_manager.create<T>();
+
+          _scene_manager.setCurrentScene(scene_ptr);
         }
 
-      void run() {
-        Log::d("Running!");
-      }
+      SceneManager &getSceneManager() { return _scene_manager; }
   };
 }
 

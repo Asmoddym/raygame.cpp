@@ -9,3 +9,10 @@ macro::Scene::~Scene() {
   Log::d("Destroying <", _name, ">");
 }
 
+void macro::Scene::update() {
+  Log::d("Updating scene ", _name);
+
+  for (auto &&entity: _entities) {
+    entity.second.update();
+  }
+}

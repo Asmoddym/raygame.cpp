@@ -7,6 +7,8 @@ class MainScene : public macro::Scene {
   public:
     MainScene() : Scene { "MainScene" } {}
     virtual ~MainScene() override {}
+
+    virtual void initialize() override;
 };
 
 #endif

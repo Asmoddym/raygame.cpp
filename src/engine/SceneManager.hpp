@@ -8,17 +8,25 @@
 namespace macro {
   class SceneManager {
     private:
-      std::vector<std::unique_ptr<Scene>> _scenes;
+      std::vector<std::shared_ptr<Scene>> _scenes;
+      std::shared_ptr<Scene> _current_scene;
 
     public:
       SceneManager() {}
       virtual ~SceneManager() {}
 
+      void setCurrentScene(std::shared_ptr<Scene> ptr) { _current_scene = ptr; }
+
+      std::shared_ptr<Scene> &getCurrentScene() { return _current_scene; }
+      std::vector<std::shared_ptr<Scene>> &getScenes() { return _scenes; }
+
       template<typename T>
-      void create() {
+      std::shared_ptr<Scene> &create() {
         static_assert(std::is_base_of<Scene, T>(), "Not a base of Scene");
 
-        _scenes.emplace_back(std::make_unique<T>());
+        _scenes.emplace(_scenes.begin(), std::make_shared<T>());
+
+        return *_scenes.begin();
       }
   };
 }

@@ -43,4 +43,4 @@ class Log {
     static void append(std::stringstream &ss, T&& t) { ss << t; }
 };
 
-#endif
+#endif // LOG_HPP_

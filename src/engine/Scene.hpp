@@ -10,14 +10,16 @@
 namespace macro {
   class Scene {
     private:
-      std::string const _name;
+      std::string _name;
       std::unordered_map<std::string, Entity> _entities;
+      bool _initialized;
   
     public:
-      Scene(std::string const &name);
+      Scene();
       virtual ~Scene();
 
-      virtual void initialize() = 0;
+      void initialize(std::string const &name);
+      void destroy();
 
       void update();
 
@@ -28,10 +30,13 @@ namespace macro {
 
         _entities.insert(std::make_pair(id, Entity { id }));
 
+        Log::d("[Scene <", _name, ">] Created entity <", id, ">");
         return _entities.at(id);
       }
 
       std::string const &getName() const { return _name; }
+      bool const &initialized() const { return _initialized; }
+      std::unordered_map<std::string, Entity> &getEntities() { return _entities; }
   };
 }
 

@@ -1,10 +1,12 @@
-#include "engine/Application.hpp"
-#include "scene/MainScene.hpp"
+#include "engine/macro.hpp"
 
 int main() {
   macro::Application app;
 
-  app.registerMainScene<MainScene>();
+  auto &scene = app.initializeScene("Main");
+  auto &entity = scene.createEntity("coucou");
+  entity.addComponent<macro::component::Drawable>("wabbit_alpha.png");
+
   app.run();
 
   return 0;

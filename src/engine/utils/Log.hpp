@@ -4,17 +4,17 @@
 # include <iostream>
 # include <sstream>
 
+# include "Debug.hpp"
+
 namespace macro {
   class Log {
     public:
       template<typename... Args>
-  #ifdef DEBUG
       static void d(Args&&... args) {
-        display("[DEBUG]  ", args...);
+        IF_DEBUG({
+            display("[DEBUG]  ", args...);
+            });
       }
-  #else
-      static void d(Args&&...) {}
-  #endif
   
       template<typename... Args>
       static void l(Args&&... args) {

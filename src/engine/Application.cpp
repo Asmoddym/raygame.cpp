@@ -1,6 +1,7 @@
 #include "Application.hpp"
 #include "raylib.h"
 #include "utils/Log.hpp"
+#include "utils/Timer.hpp"
 
 macro::Application::Application() {
   Log::d("Constructing Application");
@@ -17,9 +18,13 @@ void macro::Application::run() {
   SetTargetFPS(60);
 
   while (!WindowShouldClose()) {
+    IF_DEBUG(utils::Timer::reset());
+
     _scene_manager.getCurrentScene()->update();
 
     BeginDrawing();
+
+    IF_DEBUG(Log::d("> ", utils::Timer::since(), "ms"));
     EndDrawing();
   }
 

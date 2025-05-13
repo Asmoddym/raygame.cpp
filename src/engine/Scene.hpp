@@ -25,7 +25,7 @@ namespace macro {
 
       Entity &createEntity(std::string const &id) {
         if (_entities.find(id) != _entities.end()) {
-          throw std::exception(Log::to_s("Entity <", id, "> already exists").c_str());
+          throw std::runtime_error(Log::to_s("Entity <", id, "> already exists").c_str());
         }
 
         _entities.insert(std::make_pair(id, Entity { id }));

@@ -3,7 +3,7 @@
 CONFIGURATION=$1
 
 if [ -z "$CONFIGURATION" ]; then
-  CONFIGURATION="Debug"
+  CONFIGURATION="debug"
 fi
 
 rm -rf bin/$CONFIGURATION/raygame
@@ -12,7 +12,7 @@ pushd build
 [[ $OSTYPE == 'darwin'* ]] && ./premake5.osx gmake2 || ./premake5 gmake2
 popd
 
-make
+make config=${CONFIGURATION}_x64 -j 8
 
 pushd build
 [[ $OSTYPE == 'darwin'* ]] && ./premake5.osx export-compile-commands || ./premake5 export-compile-commands

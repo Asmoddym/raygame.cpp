@@ -1,8 +1,9 @@
+#include "Entity.hpp"
 #include "Drawable.hpp"
 #include "raylib.h"
 #include "utils/Log.hpp"
 
-macro::component::Drawable::Drawable(std::string const &path) {
+macro::component::Drawable::Drawable(Entity &e, std::string const &path) : Component { e } {
   _texture = LoadTexture(path.c_str());
 }
 
@@ -13,6 +14,7 @@ macro::component::Drawable::~Drawable() {
 }
 
 void macro::component::Drawable::update() {
-  Log::d("DRAXABLE");
-  DrawTexture(_texture, 0, 0, WHITE);
+  Log::d("DRAWABLE");
+
+  DrawTexture(_texture, (int)_entity.getPosition().x, (int)_entity.getPosition().y, WHITE);
 }

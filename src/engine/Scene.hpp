@@ -1,7 +1,6 @@
 #ifndef MACRO_SCENE_HPP_
 # define MACRO_SCENE_HPP_
 
-#include <exception>
 # include <string>
 #include <unordered_map>
 #include "utils/Log.hpp"

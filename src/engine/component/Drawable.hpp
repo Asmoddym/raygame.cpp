@@ -12,7 +12,7 @@ namespace macro {
         Texture2D _texture;
 
       public:
-        Drawable(std::string const &path);
+        Drawable(Entity &e, std::string const &path);
         virtual ~Drawable() override;
 
         virtual void update() override;

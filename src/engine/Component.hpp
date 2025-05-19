@@ -2,9 +2,14 @@
 # define MACRO_COMPONENT_HPP_
 
 namespace macro {
+  class Entity;
+
   class Component {
+    protected:
+      Entity &_entity;
+
     public:
-      Component() {}
+      Component(Entity &e) : _entity { e } {}
       virtual ~Component() {}
 
       virtual void update() = 0;

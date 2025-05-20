@@ -1,6 +1,4 @@
-#include "engine/component/Drawable.hpp"
 #include "engine/macro.hpp"
-#include "raylib.h"
 
 class TestScript : public macro::Script {
   public:
@@ -9,17 +7,17 @@ class TestScript : public macro::Script {
     }
 
     virtual void update(macro::Entity &e) override {
-      if (IsKeyPressed(KEY_RIGHT)) {
-        e.getPosition().x += 20;
+      if (IsKeyDown(KEY_RIGHT)) {
+        e.getPosition().x += 5;
       }
-      if (IsKeyPressed(KEY_LEFT)) {
-        e.getPosition().x -= 20;
+      if (IsKeyDown(KEY_LEFT)) {
+        e.getPosition().x -= 5;
       }
-      if (IsKeyPressed(KEY_UP)) {
-        e.getPosition().y -= 20;
+      if (IsKeyDown(KEY_UP)) {
+        e.getPosition().y -= 5;
       }
-      if (IsKeyPressed(KEY_DOWN)) {
-        e.getPosition().y += 20;
+      if (IsKeyDown(KEY_DOWN)) {
+        e.getPosition().y += 5;
       }
     }
 };

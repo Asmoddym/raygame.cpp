@@ -7,7 +7,7 @@
 macro::Application::Application() {
   Log::d("Constructing Application");
 
-  InitWindow(640, 480, "raylib [core] example - 2d camera");
+  InitWindow(1920, 1080, "raylib [core] example - 2d camera");
   SearchAndSetResourceDir("resources");
   SetTargetFPS(144);
 }

@@ -2,6 +2,7 @@
 # define MACRO_APPLICATION_HPP_
 
 # include "Scene.hpp"
+#include "raylib.h"
 
 namespace macro {
   class Application {

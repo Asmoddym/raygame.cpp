@@ -21,13 +21,15 @@ void macro::Application::run() {
 
   while (!WindowShouldClose()) {
     BeginDrawing();
-    ClearBackground(BLACK);
+    BeginMode2D(_scene.getCamera());
     IF_DEBUG(utils::Timer::reset());
+    ClearBackground(BLACK);
 
     _scene.update();
 
-    DrawFPS(0, 0);
     IF_DEBUG(Log::d("> ", utils::Timer::since(), "ms"));
+    EndMode2D();
+    DrawFPS(0, 0);
     EndDrawing();
   }
 

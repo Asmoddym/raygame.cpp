@@ -1,3 +1,4 @@
+#include "Scene.hpp"
 #include "Entity.hpp"
 #include "Component.hpp"
 #include "Script.hpp"
@@ -13,4 +14,8 @@ void macro::Entity::update() {
   for (auto &&script: _scripts) {
     script->update(*this);
   }
+}
+
+void macro::Entity::updateCameraTarget(Vector2 const &t) {
+  _scene.getCamera().target = t;
 }

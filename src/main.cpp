@@ -1,6 +1,6 @@
 #include "engine/macro.hpp"
 
-class TestScript : public macro::Script {
+class PlayerScript : public macro::Script {
   public:
     void initialize(macro::Entity &e) override {
       e.addComponent<macro::component::Drawable>("wabbit_alpha.png");
@@ -19,6 +19,8 @@ class TestScript : public macro::Script {
       if (IsKeyDown(KEY_DOWN)) {
         e.getPosition().y += 5;
       }
+
+      e.updateCameraTarget(e.getPosition());
     }
 };
 
@@ -26,9 +28,9 @@ int main() {
   macro::Application app;
 
   auto &scene = app.initializeScene("Main");
-  auto &entity = scene.createEntity("coucou");
-  entity.addScript<TestScript>();
-  
+  auto &player = scene.createEntity("coucou");
+  player.addScript<PlayerScript>();
+
   app.run();
 
   return 0;

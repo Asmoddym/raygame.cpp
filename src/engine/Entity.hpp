@@ -10,6 +10,7 @@
 # include "Script.hpp"
 
 namespace macro {
+  class Scene;
   class Component;
 
   class Entity {
@@ -17,12 +18,14 @@ namespace macro {
       std::string _id;
       Vector2 _position;
 
+      Scene &_scene;
+
       std::vector<std::shared_ptr<Component>> _components;
       std::vector<std::shared_ptr<Script>> _scripts;
 
     public:
-      Entity(std::string const &id) : _id { id }, _position { 0, 0 } { Log::d("Constructing entity <", _id, ">"); }
-      Entity(Entity const &e) : _id { e._id }, _position { 0, 0 } { Log::d("Constructing entity <", _id, ">"); }
+      Entity(Scene &scene, std::string const &id) : _scene { scene }, _id { id }, _position { 0, 0 } { Log::d("Constructing entity <", _id, ">"); }
+      Entity(Scene &scene, Entity const &e) : _scene { scene }, _id { e._id }, _position { 0, 0 } { Log::d("Constructing entity <", _id, ">"); }
 
       virtual ~Entity() { Log::d("Destroying entity <", _id, ">"); }
 
@@ -40,6 +43,8 @@ namespace macro {
         _scripts.emplace_back(std::make_shared<T>());
         _scripts.back().get()->initialize(*this);
       }
+
+      void updateCameraTarget(Vector2 const &t);
 
       std::string const &getId() const { return _id; }
       Vector2 &getPosition() { return _position; }

@@ -1,5 +1,6 @@
 #include "Application.hpp"
 #include "raylib.h"
+#include "utils/Ini.hpp"
 #include "utils/Log.hpp"
 #include "utils/Timer.hpp"
 #include "resource_dir.h"
@@ -18,6 +19,10 @@ macro::Application::~Application() {
 
 void macro::Application::run() {
   Log::d("Running!");
+
+
+  utils::Ini ini("test.ini");
+return ;
 
   while (!WindowShouldClose()) {
     BeginDrawing();

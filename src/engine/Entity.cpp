@@ -16,6 +16,3 @@ void macro::Entity::update() {
   }
 }
 
-void macro::Entity::updateCameraTarget(Vector2 const &t) {
-  _scene.getCamera().target = t;
-}

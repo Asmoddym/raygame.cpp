@@ -20,7 +20,7 @@ class PlayerScript : public macro::Script {
         e.getPosition().y += 5;
       }
 
-      e.updateCameraTarget(e.getPosition());
+      e.getScene().getCamera().target = e.getPosition();
     }
 };
 

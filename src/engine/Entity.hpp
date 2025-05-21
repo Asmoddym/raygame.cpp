@@ -48,6 +48,8 @@ namespace macro {
 
       std::string const &getId() const { return _id; }
       Vector2 &getPosition() { return _position; }
+
+      Scene &getScene() { return _scene; }
   };
 }
 

@@ -13,13 +13,20 @@ namespace macro {
         std::string value;
       };
 
+      struct Section {
+        std::vector<std::string> content;
+        std::unordered_map<std::string, std::string> keyValues;
+      };
+
       private:
         std::string const &_path;
-        std::unordered_map<std::string, std::unordered_map<std::string, Value>> _data;
+        std::unordered_map<std::string, Section> _data;
 
       public:
         Ini(std::string const &path);
         virtual ~Ini() {}
+
+        Section const &operator[](std::string const &key);
 
       private:
         void parse();
@@ -27,6 +34,8 @@ namespace macro {
 
         bool isSection(std::string const &line);
         void parseSection(std::string const &name, std::vector<std::string> const &lines);
+
+        std::string trim(std::string const &str);
     };
   }
 }

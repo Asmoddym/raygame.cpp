@@ -19,13 +19,17 @@ void macro::utils::Ini::parse() {
   std::unordered_map<std::string, std::vector<std::string>> section_lines;
 
   for (auto &&line: lines) {
+    // TODO: find a better way to do this. Fix file in windows?
+#ifdef _WIN32
     line = line.substr(0, line.size() - 1);
+#endif
 
     if (line.size() == 0) {
       continue;
     }
 
     if (isSection(line)) {
+      Log::d("LINE: ", line, ", <", line.substr(1, line.size() - 2), ">");
       section_name = trim(line.substr(1, line.size() - 2));
     } else {
       section_lines[section_name].emplace_back(line);

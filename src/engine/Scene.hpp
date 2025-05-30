@@ -1,18 +1,19 @@
 #ifndef MACRO_SCENE_HPP_
 # define MACRO_SCENE_HPP_
 
+#include <algorithm>
+#include <memory>
 # include <string>
 #include <unordered_map>
+#include "Component.hpp"
 #include "raylib.h"
-#include "utils/Log.hpp"
-#include "Entity.hpp"
 
 namespace macro {
   class Scene {
     private:
       std::string _name;
-      std::unordered_map<std::string, Entity> _entities;
       bool _initialized;
+      std::unordered_map<int, std::vector<std::unique_ptr<Component>>> _components;
       Camera2D _camera;
   
     public:
@@ -21,23 +22,34 @@ namespace macro {
 
       void initialize(std::string const &name);
       void destroy();
-
+      
       void update();
 
-      Entity &createEntity(std::string const &id) {
-        if (_entities.find(id) != _entities.end()) {
-          throw std::runtime_error(Log::to_s("Entity <", id, "> already exists").c_str());
+      int createEntity() {
+        static int count = 0;
+
+        return count++;
+      }
+
+      template<typename T, typename... Args>
+        T &addComponent(int entity_id, Args&&... args) {
+          _components[entity_id].emplace_back(std::make_unique<T>(args...));
+
+          return *static_cast<T *>(_components[entity_id].back().get());
         }
 
-        _entities.insert(std::make_pair(id, Entity { *this, id }));
+      template<typename T>
+        T &getComponent(int entity_id) {
+          auto &v = _components[entity_id];
 
-        Log::d("[Scene <", _name, ">] Created entity <", id, ">");
-        return _entities.at(id);
-      }
+          auto &result = std::find_if(v.begin(), v.end(), [&](const std::unique_ptr<Component> &item) { return dynamic_cast<T *>(item.get()); });
+
+          return *static_cast<T *>((*result).get());
+        }
 
       std::string const &getName() const { return _name; }
       bool const &initialized() const { return _initialized; }
-      std::unordered_map<std::string, Entity> &getEntities() { return _entities; }
+      Camera2D const &getCamera() const { return _camera; }
       Camera2D &getCamera() { return _camera; }
   };
 }

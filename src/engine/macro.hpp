@@ -4,6 +4,5 @@
 # include "utils/Log.hpp"
 # include "Application.hpp"
 # include "components.hpp"
-# include "Script.hpp"
 
 #endif // MACRO_MACRO_HPP_

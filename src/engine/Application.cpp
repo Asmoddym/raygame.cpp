@@ -20,10 +20,6 @@ macro::Application::~Application() {
 void macro::Application::run() {
   Log::d("Running!");
 
-
-  utils::Ini ini("test.ini");
-return ;
-
   while (!WindowShouldClose()) {
     BeginDrawing();
     BeginMode2D(_scene.getCamera());

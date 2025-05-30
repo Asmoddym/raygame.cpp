@@ -20,13 +20,8 @@ void macro::Scene::destroy() {
   _initialized = false;
 
   _name = "";
-  _entities.clear();
 }
 
 void macro::Scene::update() {
-  Log::d("[Scene <", _name, ">] Updating scene <", _name, "> (", _entities.size(), " entities)");
-
-  for (auto &&entity: _entities) {
-    entity.second.update();
-  }
+  Log::d("[Scene <", _name, ">] Updating scene <", _name, "> (", _components.size(), " components)");
 }

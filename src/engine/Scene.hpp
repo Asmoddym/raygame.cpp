@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <memory>
 # include <string>
+# include <vector>
 #include <unordered_map>
 #include "Component.hpp"
 #include "raylib.h"
@@ -42,7 +43,7 @@ namespace macro {
         T &getComponent(int entity_id) {
           auto &v = _components[entity_id];
 
-          auto &result = std::find_if(v.begin(), v.end(), [&](const std::unique_ptr<Component> &item) { return dynamic_cast<T *>(item.get()); });
+          auto result = std::find_if(v.begin(), v.end(), [&](const std::unique_ptr<Component> &item) { return dynamic_cast<T *>(item.get()); });
 
           return *static_cast<T *>((*result).get());
         }

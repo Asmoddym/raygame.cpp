@@ -2,7 +2,6 @@
 # define MACRO_APPLICATION_HPP_
 
 # include "Scene.hpp"
-#include "raylib.h"
 
 namespace macro {
   class Application {
@@ -15,15 +14,7 @@ namespace macro {
 
       void run();
 
-      Scene &initializeScene(std::string const &name) {
-        if (_scene.initialized()) {
-          _scene.destroy();
-        }
-
-        _scene.initialize(name);
-
-        return _scene;
-      }
+      Scene &getScene() { return _scene; }
   };
 }
 

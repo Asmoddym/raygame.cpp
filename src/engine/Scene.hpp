@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <memory>
-# include <string>
 # include <vector>
 #include <unordered_map>
 #include "Component.hpp"
@@ -11,9 +10,23 @@
 
 namespace macro {
   class Scene {
+    class EntityWrapper {
+      private:
+        int _id;
+        Scene &_scene;
+
+      public:
+        EntityWrapper(int id, Scene &s) : _id { id }, _scene { s } {}
+        
+        template<typename T, typename... Args>
+          T &addComponent(Args&&... args) { return _scene.addComponent<T>(_id, args...); }
+
+        template<typename T>
+          T &getComponent() { return _scene.getComponent<T>(_id); }
+    };
+
     private:
-      std::string _name;
-      bool _initialized;
+      int _entity_count;
       std::unordered_map<int, std::vector<std::unique_ptr<Component>>> _components;
       Camera2D _camera;
   
@@ -21,15 +34,10 @@ namespace macro {
       Scene();
       virtual ~Scene();
 
-      void initialize(std::string const &name);
-      void destroy();
-      
       void update();
 
-      int createEntity() {
-        static int count = 0;
-
-        return count++;
+      EntityWrapper createEntity() {
+        return EntityWrapper { _entity_count++, *this };
       }
 
       template<typename T, typename... Args>
@@ -48,9 +56,6 @@ namespace macro {
           return *static_cast<T *>((*result).get());
         }
 
-      std::string const &getName() const { return _name; }
-      bool const &initialized() const { return _initialized; }
-      Camera2D const &getCamera() const { return _camera; }
       Camera2D &getCamera() { return _camera; }
   };
 }

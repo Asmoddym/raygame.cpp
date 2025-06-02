@@ -1,12 +1,18 @@
 #ifndef MACRO_APPLICATION_HPP_
 # define MACRO_APPLICATION_HPP_
 
-# include "Scene.hpp"
+# include "Registry.hpp"
+# include "SystemManager.hpp"
+# include "raylib.h"
 
 namespace macro {
   class Application {
     private:
-      Scene _scene;
+      Camera2D _camera;
+
+      int _entity_count;
+      Registry _component_manager;
+      SystemManager _system_manager;
 
     public:
       Application();
@@ -14,7 +20,10 @@ namespace macro {
 
       void run();
 
-      Scene &getScene() { return _scene; }
+      Registry &getRegistry() { return _component_manager; }
+      SystemManager &getSystemManager() { return _system_manager; }
+
+      int generateEntityID();
   };
 }
 

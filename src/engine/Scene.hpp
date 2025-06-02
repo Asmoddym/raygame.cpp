@@ -2,7 +2,7 @@
 # define MACRO_SCENE_HPP_
 
 #include <algorithm>
-#include <memory>
+#include <iterator>
 # include <vector>
 #include <unordered_map>
 #include "Component.hpp"
@@ -10,13 +10,13 @@
 
 namespace macro {
   class Scene {
-    class EntityWrapper {
+    class Entity {
       private:
         int _id;
         Scene &_scene;
 
       public:
-        EntityWrapper(int id, Scene &s) : _id { id }, _scene { s } {}
+        Entity(int id, Scene &s) : _id { id }, _scene { s } {}
         
         template<typename T, typename... Args>
           T &addComponent(Args&&... args) { return _scene.addComponent<T>(_id, args...); }
@@ -27,7 +27,8 @@ namespace macro {
 
     private:
       int _entity_count;
-      std::unordered_map<int, std::vector<std::unique_ptr<Component>>> _components;
+      std::vector<Component *> _components;
+      std::unordered_map<int, std::vector<Component *>> _components_by_entity;
       Camera2D _camera;
   
     public:
@@ -36,27 +37,47 @@ namespace macro {
 
       void update();
 
-      EntityWrapper createEntity() {
-        return EntityWrapper { _entity_count++, *this };
+      Entity createEntity() {
+        return Entity { _entity_count++, *this };
       }
+
+      //TODO: Move this into a registry of some sort
+      template<typename T>
+      static constexpr inline bool componentMatcher(const Component *item) { return dynamic_cast<const T *>(item); }
 
       template<typename T, typename... Args>
         T &addComponent(int entity_id, Args&&... args) {
-          _components[entity_id].emplace_back(std::make_unique<T>(args...));
+          T *c = new T { args... };
+          _components.emplace_back(c);
+          _components_by_entity[entity_id].emplace_back(c);
 
-          return *static_cast<T *>(_components[entity_id].back().get());
+          return *c;
         }
 
       template<typename T>
         T &getComponent(int entity_id) {
-          auto &v = _components[entity_id];
+          const auto &v = _components_by_entity[entity_id];
+          const auto result = std::find_if(v.begin(), v.end(), &componentMatcher<T>);
 
-          auto result = std::find_if(v.begin(), v.end(), [&](const std::unique_ptr<Component> &item) { return dynamic_cast<T *>(item.get()); });
+          return *static_cast<T *>(*result);
+        }
 
-          return *static_cast<T *>((*result).get());
+      template<typename T>
+        void findAndCopyComponentsForType(std::vector<Component *> &matches) {
+          std::copy_if(_components.begin(), _components.end(), std::back_inserter(matches), &componentMatcher<T>);
         }
 
       Camera2D &getCamera() { return _camera; }
+
+    private:
+      template<typename... Args>
+        std::vector<Component *> getComponentsByType() {
+          std::vector<Component *> matches;
+
+          (findAndCopyComponentsForType<Args>(matches), ...);
+
+          return matches;
+        }
   };
 }
 

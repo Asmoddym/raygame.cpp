@@ -6,8 +6,6 @@ namespace macro {
     public:
       Component() {}
       virtual ~Component() {}
-
-      // virtual void update() = 0;
   };
 }
 

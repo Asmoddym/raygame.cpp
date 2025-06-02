@@ -10,6 +10,9 @@ macro::Scene::Scene() : _entity_count { 0 } {
 }
 
 macro::Scene::~Scene() {
+  for (auto &&component: _components) {
+    delete component;
+  }
 }
 
 void macro::Scene::update() {

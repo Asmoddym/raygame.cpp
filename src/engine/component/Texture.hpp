@@ -2,8 +2,8 @@
 # define MACRO_COMPONENT_TEXTURE_HPP_
 
 # include "Component.hpp"
-#include "raylib.h"
-#include <string>
+# include "raylib.h"
+# include <string>
 
 namespace macro {
   namespace component {
@@ -11,6 +11,7 @@ namespace macro {
       Texture2D texture;
 
       Texture(std::string const &path) : texture { LoadTexture(path.c_str()) } {}
+      virtual ~Texture() override { UnloadTexture(texture); };
     };
   }
 }

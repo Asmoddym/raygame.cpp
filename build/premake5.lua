@@ -159,10 +159,10 @@ if (downloadRaylib) then
 
         vpaths 
         {
-            ["Header Files/*"] = { "../include/**.h",  "../include/**.hpp", "../src/**.h", "../src/**.hpp"},
+            ["Header Files/*"] = { "../include/**.h",  "../src/**.h"},
             ["Source Files/*"] = {"../src/**.c", "src/**.cpp"},
         }
-        files {"../src/**.c", "../src/**.cpp", "../src/**.h", "../src/**.hpp", "../include/**.h", "../include/**.hpp"}
+        files {"../src/**.c", "../src/**.cpp", "../src/**.h", "../include/**.h" }
     
         includedirs { "../src", "../src/engine" }
         includedirs { "../include" }

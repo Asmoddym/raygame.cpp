@@ -1,4 +1,4 @@
-#include "engine/macro.hpp"
+#include "engine/macro.h"
 
 class Test : public macro::System {
   DefineSystem(Test);

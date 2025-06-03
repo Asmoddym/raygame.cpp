@@ -1,7 +1,7 @@
-#ifndef MACRO_SYSTEM_HPP_
-# define MACRO_SYSTEM_HPP_
+#ifndef MACRO_SYSTEM_H_
+# define MACRO_SYSTEM_H_
 
-# include "Registry.hpp"
+# include "Registry.h"
 
 # define DefineSystem(Name) public: \
   inline Name(::macro::Registry &r) : System { r } {} \
@@ -21,4 +21,4 @@ namespace macro {
   };
 }
 
-#endif //MACRO_SYSTEM_HPP_
+#endif //MACRO_SYSTEM_H_

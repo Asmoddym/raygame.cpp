@@ -1,19 +1,9 @@
-#include "Log.hpp"
-#include "Ini.hpp"
+#include "Ini.h"
 #include "raylib.h"
-#include <cctype>
+#include <iostream>
 #include <sstream>
-#include <unordered_map>
 
-macro::utils::Ini::Ini(std::string const &path) : _path { path } {
-  parse();
-}
-
-bool macro::utils::Ini::isSection(std::string const &line) {
-  return line[0] == '[' && line[line.size() - 1] == ']';
-}
-
-void macro::utils::Ini::parse() {
+void Ini::parse() {
   std::vector<std::string> lines = getLines();
   std::string section_name;
   std::unordered_map<std::string, std::vector<std::string>> section_lines;
@@ -37,19 +27,19 @@ void macro::utils::Ini::parse() {
   }
 
   for (auto &&section: _data) {
-    Log::d("Section name: <", section.first, ">");
+    std::cout << "Section name: <" << section.first << ">" << std::endl;
 
-    Log::d("  Content: ", section.second.content.size(), " lines");
+    std::cout << "  Content: " << section.second.content.size() << " lines" << std::endl;
     for (auto &&line: section.second.content) {
-      Log::d("    <", line, ">");
+      std::cout << "    <" << line << ">" << std::endl;
     }
     for (auto &&kv: section.second.keyValues) {
-      Log::d("  <", kv.first, ">: <", kv.second, ">");
+      std::cout << "  <" << kv.first << ">: <" << kv.second << ">" << std::endl;
     }
   }
 }
 
-void macro::utils::Ini::parseSection(std::string const &name, std::vector<std::string> const &lines) {
+void Ini::parseSection(std::string const &name, std::vector<std::string> const &lines) {
   for (auto &line: lines) {
     auto idx = line.find("=");
 
@@ -64,7 +54,7 @@ void macro::utils::Ini::parseSection(std::string const &name, std::vector<std::s
   }
 }
 
-std::vector<std::string> macro::utils::Ini::getLines() {
+std::vector<std::string> Ini::getLines() {
   std::vector<std::string> lines;
   int size;
   unsigned char *data = LoadFileData(_path.c_str(), &size);
@@ -81,7 +71,7 @@ std::vector<std::string> macro::utils::Ini::getLines() {
   return lines;
 }
 
-std::string macro::utils::Ini::trim(std::string const &raw) {
+std::string Ini::trim(std::string const &raw) {
   std::string str = raw;
 
   str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](unsigned char ch) {

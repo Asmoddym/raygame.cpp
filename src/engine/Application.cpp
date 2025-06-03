@@ -1,11 +1,12 @@
-#include "Application.hpp"
-#include "raylib.h"
-#include "utils/Log.hpp"
-#include "utils/Timer.hpp"
+#include "Application.h"
+#include "Debug.h"
+#include "lib/Timer.h"
 #include "resource_dir.h"
 
+#include "system/Draw.h"
+
 macro::Application::Application() : _entity_count { 1 }, _camera { 0 }, _system_manager { _registry } {
-  Log::d("Constructing Application");
+  DebugLog("Constructing Application");
 
   Vector2 size = Vector2 { 1920, 1080 };
 
@@ -16,10 +17,8 @@ macro::Application::Application() : _entity_count { 1 }, _camera { 0 }, _system_
   _camera.offset = ::Vector2 { size.x / 2.f, size.y / 2.f };
   _camera.rotation = 0.0f;
   _camera.zoom = 1.0f;
-}
 
-macro::Application::~Application() {
-  Log::d("Destroying Application");
+  _system_manager.set<system::Draw>();
 }
 
 void macro::Application::run() {
@@ -28,12 +27,14 @@ void macro::Application::run() {
   while (!WindowShouldClose()) {
     BeginDrawing();
     BeginMode2D(_camera);
-    IF_DEBUG(utils::Timer::reset());
-    ClearBackground(BLACK);
 
+    DebugIf(Timer::reset());
+
+    ClearBackground(BLACK);
     _system_manager.update();
 
-    IF_DEBUG(Log::d("> ", utils::Timer::since(), "ms"));
+    DebugLog("> ", Timer::since(), "ms");
+
     EndMode2D();
     DrawFPS(0, 0);
     EndDrawing();
@@ -42,6 +43,3 @@ void macro::Application::run() {
   CloseWindow();
 }
 
-int macro::Application::generateEntityID() {
-  return _entity_count++;
-}

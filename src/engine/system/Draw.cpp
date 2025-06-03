@@ -1,7 +1,7 @@
-#include "Draw.hpp"
-#include "raylib.h"
+#include "Draw.h"
 
-#include "components.hpp"
+#include "component/Texture.h"
+#include "component/Value.h"
 
 void macro::system::Draw::update() {
   registry.forEach<component::Vector2, component::Texture>([&](int entity_id) {

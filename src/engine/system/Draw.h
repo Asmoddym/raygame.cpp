@@ -1,7 +1,7 @@
-#ifndef MACRO_SYSTEM_DRAW_HPP_
-# define MACRO_SYSTEM_DRAW_HPP_
+#ifndef MACRO_SYSTEM_DRAW_H_
+# define MACRO_SYSTEM_DRAW_H_
 
-# include "System.hpp"
+# include "System.h"
 
 namespace macro {
   namespace system {
@@ -13,4 +13,4 @@ namespace macro {
   }
 }
 
-#endif //MACRO_SYSTEM_DRAW_HPP_
+#endif //MACRO_SYSTEM_DRAW_H_

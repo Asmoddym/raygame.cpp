@@ -8,11 +8,11 @@
 namespace macro {
   class Application {
     private:
-      Camera2D _camera;
-
-      int _entity_count;
       Registry _registry;
-      SystemManager _system_manager;
+      SystemManager _system_manager { _registry };
+
+      int _entity_count = 0;
+      Camera2D _camera = { 0 };
 
     public:
       Application();

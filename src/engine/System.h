@@ -7,7 +7,6 @@
   inline Name(::macro::Registry &r) : System { r } {} \
   private:
 
-
 namespace macro {
   class System {
     protected:

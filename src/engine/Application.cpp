@@ -5,7 +5,7 @@
 
 #include "system/Draw.h"
 
-macro::Application::Application() : _entity_count { 1 }, _camera { 0 }, _system_manager { _registry } {
+macro::Application::Application() {
   DebugLog("Constructing Application");
 
   Vector2 size = Vector2 { 1920, 1080 };

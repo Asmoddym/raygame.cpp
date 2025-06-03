@@ -11,7 +11,7 @@ namespace macro {
       Camera2D _camera;
 
       int _entity_count;
-      Registry _component_manager;
+      Registry _registry;
       SystemManager _system_manager;
 
     public:
@@ -20,7 +20,7 @@ namespace macro {
 
       void run();
 
-      Registry &getRegistry() { return _component_manager; }
+      Registry &getRegistry() { return _registry; }
       SystemManager &getSystemManager() { return _system_manager; }
 
       int generateEntityID();

@@ -1,8 +1,8 @@
 #include "SystemManager.hpp"
-#include "System.hpp"
+
 #include "system/Draw.hpp"
 
-macro::SystemManager::SystemManager() {
+macro::SystemManager::SystemManager(macro::Registry &registry) : _registry { registry } {
   set<system::Draw>();
 }
 
@@ -12,8 +12,8 @@ macro::SystemManager::~SystemManager() {
   }
 }
 
-void macro::SystemManager::update(macro::Registry &registry) {
+void macro::SystemManager::update() {
   for (auto &&system: _systems) {
-    system->update(registry);
+    system->update();
   }
 }

@@ -2,21 +2,25 @@
 # define MACRO_SYSTEMMANAGER_HPP_
 
 # include "Registry.hpp"
-#include "System.hpp"
+# include "System.hpp"
+#include <type_traits>
 
 namespace macro {
   class SystemManager {
+    Registry &_registry;
     std::vector<System *> _systems;
 
     public:
-      SystemManager();
+      SystemManager(Registry &registry);
       virtual ~SystemManager();
 
-      void update(Registry &registry);
+      void update();
 
       template<typename S>
         void set() {
-          _systems.emplace_back(new S {});
+          static_assert(std::is_base_of<System, S>(), "must be a System");
+
+          _systems.emplace_back(new S { _registry });
         }
   };
 }

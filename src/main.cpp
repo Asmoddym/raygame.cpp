@@ -1,8 +1,10 @@
 #include "engine/macro.hpp"
 
 class Test : public macro::System {
+  DefineSystem(Test);
+
   public:
-    virtual void update(macro::Registry &registry) override {
+    inline virtual void update() override {
     }
 };
 

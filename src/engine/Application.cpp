@@ -4,7 +4,7 @@
 #include "utils/Timer.hpp"
 #include "resource_dir.h"
 
-macro::Application::Application() : _entity_count { 1 }, _camera { 0 } {
+macro::Application::Application() : _entity_count { 1 }, _camera { 0 }, _system_manager { _registry } {
   Log::d("Constructing Application");
 
   Vector2 size = Vector2 { 1920, 1080 };
@@ -26,13 +26,12 @@ void macro::Application::run() {
   Log::d("Running!");
 
   while (!WindowShouldClose()) {
-    DebugLog(_camera.offset.x, ", ", _camera.offset.y);
     BeginDrawing();
     BeginMode2D(_camera);
     IF_DEBUG(utils::Timer::reset());
     ClearBackground(BLACK);
 
-    _system_manager.update(_component_manager);
+    _system_manager.update();
 
     IF_DEBUG(Log::d("> ", utils::Timer::since(), "ms"));
     EndMode2D();

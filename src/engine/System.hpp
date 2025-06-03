@@ -1,15 +1,23 @@
 #ifndef MACRO_SYSTEM_HPP_
 # define MACRO_SYSTEM_HPP_
 
-#include "Registry.hpp"
+# include "Registry.hpp"
+
+# define DefineSystem(Name) public: \
+  inline Name(::macro::Registry &r) : System { r } {} \
+  private:
+
 
 namespace macro {
   class System {
-    public:
-      System() {}
-      virtual ~System() {}
+    protected:
+      Registry &registry;
 
-      virtual void update(Registry &registry) = 0;
+    public:
+      inline System(Registry &r) : registry { r } {}
+      inline virtual ~System() {}
+
+      virtual void update() = 0;
   };
 }
 

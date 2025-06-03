@@ -1,7 +1,9 @@
 #ifndef MACRO_MACRO_H_
 # define MACRO_MACRO_H_
 
+# include "raylib.h"
 # include "Application.h"
+# include "Debug.h"
 
 // Components
 

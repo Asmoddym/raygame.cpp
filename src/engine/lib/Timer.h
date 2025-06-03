@@ -5,11 +5,11 @@
 
 class Timer {
   public:
-    static inline float since() {
-      float elapsed = (float)std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - Timer::_t).count();
+    static inline double since() {
+      double elapsed = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - Timer::_t).count();
       reset();
 
-      return elapsed / 1000;
+      return elapsed / 1000000;
     }
 
     static inline void reset() {

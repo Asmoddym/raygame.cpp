@@ -1,7 +1,10 @@
 #include "Application.h"
 #include "Debug.h"
-#include "lib/Timer.h"
+#include "raylib.h"
 #include "resource_dir.h"
+
+#include "lib/Timer.h"
+#include "lib/Concatenate.h"
 
 #include "system/Draw.h"
 
@@ -33,10 +36,8 @@ void macro::Application::run() {
     ClearBackground(BLACK);
     _system_manager.update();
 
-    DebugLog("> ", Timer::since(), "ms");
-
     EndMode2D();
-    DrawFPS(0, 0);
+    DebugIf(DrawText(Concatenate(GetFPS(), " FPS (", Timer::since(), "ms)").c_str(), 10, 10, 20, LIME));
     EndDrawing();
   }
 

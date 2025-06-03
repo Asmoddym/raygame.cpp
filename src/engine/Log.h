@@ -2,7 +2,6 @@
 # define MACRO_LOG_H_
 
 # include <iostream>
-# include <sstream>
 
 namespace macro {
   class Log {
@@ -17,15 +16,6 @@ namespace macro {
         display("[LOG]  ", args...);
       }
   
-      template<typename... Args>
-      static inline std::string to_s(Args&&... args) {
-        std::stringstream ss;
-  
-        (append(ss, args), ...);
-  
-        return ss.str();
-      }
-  
     private:
       template<typename... Args>
       static inline void display(Args&&... args) {
@@ -35,9 +25,6 @@ namespace macro {
   
       template<typename T>
       static inline void output(T&& t) { std::cout << t; }
-  
-      template<typename T>
-      static inline void append(std::stringstream &ss, T&& t) { ss << t; }
   };
 }
 

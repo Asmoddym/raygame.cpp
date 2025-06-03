@@ -39,7 +39,7 @@ namespace macro {
     template<typename C>
       C &get(int entity_id) {
         auto &components = _entities[entity_id];
-        auto &it = std::find_if(components.begin(), components.end(), [&](const Component *i) { return dynamic_cast<const C *>(i); });
+        auto it = std::find_if(components.begin(), components.end(), [&](const Component *i) { return dynamic_cast<const C *>(i); });
 
         return *static_cast<C *>(*it);
      }

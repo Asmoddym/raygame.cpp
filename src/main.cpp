@@ -1,5 +1,3 @@
-#include "engine/component/Texture.hpp"
-#include "engine/component/Value.hpp"
 #include "engine/macro.hpp"
 
 using namespace macro;

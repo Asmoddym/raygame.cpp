@@ -2,25 +2,22 @@
 # define MACRO_SYSTEMMANAGER_HPP_
 
 # include "Registry.hpp"
-
-namespace macro {
-  class System {
-    public:
-      virtual void update(Registry &registry) = 0;
-  };
-}
+#include "System.hpp"
 
 namespace macro {
   class SystemManager {
     std::vector<System *> _systems;
 
     public:
-    void update(Registry &registry);
+      SystemManager();
+      virtual ~SystemManager();
 
-    template<typename S>
-      void set() {
-        _systems.emplace_back(new S {});
-      }
+      void update(Registry &registry);
+
+      template<typename S>
+        void set() {
+          _systems.emplace_back(new S {});
+        }
   };
 }
 

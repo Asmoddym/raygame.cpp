@@ -6,6 +6,8 @@
 
 # include "Debug.hpp"
 
+# define DebugLog ::macro::Log::d
+
 namespace macro {
   class Log {
     public:

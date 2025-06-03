@@ -45,7 +45,7 @@ namespace macro {
      }
 
     template<typename... Cs>
-      void forEach(std::function<void (int)> const &fn) {
+      void forEach(std::function<void (Registry &, int)> const &fn) {
         for (auto &&pair: _entities) {
           int matches = 0;
 
@@ -61,9 +61,19 @@ namespace macro {
           }(), ...);
 
           if (matches == sizeof...(Cs)) {
-            fn(pair.first);
+            fn(*this, pair.first);
           }
         }
+      }
+
+    template<typename... Cs>
+      void forEach(std::function<void(int)> const &fn) {
+        forEach([&](Registry &, int entity_id) { fn(entity_id); }); 
+      }
+
+    template<typename T, typename U>
+      std::function<void(Registry &, int)> bind(T *ptr, U const &&fn) {
+        return std::bind(fn, ptr, std::placeholders::_1, std::placeholders::_2);
       }
   };
 }

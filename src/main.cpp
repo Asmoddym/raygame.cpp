@@ -1,3 +1,5 @@
+#include "engine/component/Texture.hpp"
+#include "engine/component/Value.hpp"
 #include "engine/macro.hpp"
 
 using namespace macro;
@@ -8,10 +10,13 @@ class C : public Component {
 class Test : public macro::System {
   public:
     virtual void update(Registry &registry) override {
-      registry.forEach<component::Vector2, component::Texture>([&](int entity_id) {
+      registry.forEach<component::Vector2, component::Texture>(registry.bind(this, &Test::test));
+      registry.forEach<component::Vector2>([&](int entity_id) { Log::d("coucou: ", entity_id); });
+    }
+
+    void test(Registry &registry, int entity_id) {
         auto &t = registry.get<component::Texture>(entity_id);
         Log::d(">>>> ", t.texture.id);
-      });
     }
 };
 

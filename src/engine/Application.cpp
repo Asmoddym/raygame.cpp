@@ -11,7 +11,7 @@
 macro::Application::Application() {
   DebugLog("Constructing Application");
 
-  Vector2 size = Vector2 { 1920, 1080 };
+  Vector2 size = Vector2 { 1280, 720 };
 
   InitWindow((int)size.x, (int)size.y, "raylib [core] example - 2d camera");
   SearchAndSetResourceDir("resources");

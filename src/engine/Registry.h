@@ -64,8 +64,8 @@ namespace macro {
         }
 
       template<typename T, typename U>
-        inline std::function<void(Registry &, int)> bind(T *ptr, U const &&fn) {
-          return std::bind(fn, ptr, std::placeholders::_1, std::placeholders::_2);
+        inline std::function<void(int)> bind(T *ptr, U const &&fn) {
+          return std::bind(fn, ptr, std::placeholders::_1);
         }
   };
 }

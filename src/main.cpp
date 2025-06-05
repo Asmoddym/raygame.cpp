@@ -18,7 +18,7 @@ class InputSystem : public macro::System {
     inline void move(int entity_id) {
       auto &position = registry.get<macro::component::Vector2>(entity_id).value;
       auto &colliding = registry.get<ColliderComponent>(entity_id).colliding;
-  
+
       if (IsKeyDown(KEY_LEFT) && !colliding) { position.x -= 5; }
       if (IsKeyDown(KEY_RIGHT) && !colliding) { position.x += 5; }
       if (IsKeyDown(KEY_UP) && !colliding) { position.y -= 5; }

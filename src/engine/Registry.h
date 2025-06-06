@@ -8,6 +8,25 @@
 
 namespace macro {
   class Registry {
+    public:
+  struct Entity {
+    int id;
+    Registry &registry;
+
+    public:
+      inline Entity(Registry &r, int i) : registry { r }, id { i } {}
+      inline ~Entity() {}
+
+      template<typename... Cs, typename... Args>
+        inline Entity &set(Args&&... args) { registry.set<Cs...>(id, args...); return *this; }
+
+      template<typename C>
+        inline C &get() { return registry.get<C>(id); }
+
+      template<typename C>
+        inline bool has() { return registry.has<C>(id); }
+  };
+
     private:
       std::vector<Component *> _components;
       std::unordered_map<int, std::vector<Component *>> _entities;
@@ -51,7 +70,7 @@ namespace macro {
         }
 
       template<typename... Cs>
-        inline void forEach(std::function<void (Registry &, int)> const &fn) {
+        inline void forEach(std::function<void (Entity)> const &fn) {
           assert_component_list<Cs...>();
 
           for (auto &&pair: _entities) {
@@ -69,18 +88,13 @@ namespace macro {
              }(), ...);
 
             if (matches == sizeof...(Cs)) {
-              fn(*this, pair.first);
+              fn(Entity { *this, pair.first });
             }
           }
         }
 
-      template<typename... Cs>
-        inline void forEach(std::function<void(int)> const &fn) {
-          forEach<Cs...>([&](Registry &, int entity_id) { fn(entity_id); }); 
-        }
-
       template<typename T, typename U>
-        inline std::function<void(int)> bind(T *ptr, U const &&fn) {
+        inline std::function<void(Entity)> bind(T *ptr, U const &&fn) {
           return std::bind(fn, ptr, std::placeholders::_1);
         }
 
@@ -90,6 +104,8 @@ namespace macro {
           static_assert(std::conjunction<std::bool_constant<std::is_base_of_v<Component, Cs>>...>::value, "Not a base of component");
         }
   };
+
+  typedef Registry::Entity Entity;
 }
 
 #endif //MACRO_COMPONENTMANAGER_H_

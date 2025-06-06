@@ -1,13 +1,15 @@
 #include "engine/macro.h"
 
-class InputComponent : public macro::Component {};
-class ColliderComponent : public macro::Component {
+using namespace macro;
+
+class InputComponent : public Component {};
+class ColliderComponent : public Component {
   public:
     bool colliding = false;
-    int colliding_entity = -1;
+    int colliding_entity_id = -1;
 };
 
-class InputSystem : public macro::System {
+class InputSystem : public System {
   DefineSystem(InputSystem);
 
   public:
@@ -15,9 +17,9 @@ class InputSystem : public macro::System {
       registry.forEach<InputComponent>(registry.bind(this, &InputSystem::move));
     }
 
-    inline void move(int entity_id) {
-      auto &position = registry.get<macro::component::Vector2>(entity_id).value;
-      auto &colliding = registry.get<ColliderComponent>(entity_id).colliding;
+    inline void move(Entity entity) {
+      auto &position = entity.get<component::Vector2>().value;
+      auto &colliding = entity.get<ColliderComponent>().colliding;
 
       if (IsKeyDown(KEY_LEFT) && !colliding) { position.x -= 5; }
       if (IsKeyDown(KEY_RIGHT) && !colliding) { position.x += 5; }
@@ -26,53 +28,53 @@ class InputSystem : public macro::System {
     }
 };
 
-class CollisionSystem : public macro::System {
+class CollisionSystem : public System {
   DefineSystem(CollisionSystem);
 
   public:
   inline virtual void update() override {
-    registry.forEach<macro::component::Vector2, macro::component::Texture>(registry.bind(this, &CollisionSystem::process));
+    registry.forEach<component::Vector2, component::Texture>(registry.bind(this, &CollisionSystem::process));
   }
 
-  inline void process(int entity_id) {
-    if (registry.has<InputComponent>(entity_id)) { return; }
+  inline void process(Entity entity) {
+    if (entity.has<InputComponent>()) { return; }
 
-    auto &position = registry.get<macro::component::Vector2>(entity_id).value;
-    auto &texture = registry.get<macro::component::Texture>(entity_id).texture;
-    auto &collider = registry.get<ColliderComponent>(entity_id);
+    auto &position = entity.get<component::Vector2>().value;
+    auto &texture = entity.get<component::Texture>().texture;
+    auto &collider = entity.get<ColliderComponent>();
 
-    registry.forEach<macro::component::Vector2, macro::component::Texture>([&](int other_entity_id) {
-      if (other_entity_id == entity_id) { return; }
+    registry.forEach<component::Vector2, component::Texture>([&](Entity other_entity) {
+      if (other_entity.id == entity.id) { return; }
 
-      auto &other_position = registry.get<macro::component::Vector2>(other_entity_id).value;
-      auto &other_collider = registry.get<ColliderComponent>(other_entity_id);
+      auto &other_position = other_entity.get<component::Vector2>().value;
+      auto &other_collider = other_entity.get<ColliderComponent>();
 
       if (other_position.y < position.y) {
         other_collider.colliding = true;
-        other_collider.colliding_entity = entity_id;
+        other_collider.colliding_entity_id = entity.id;
 
         collider.colliding = true;
-        collider.colliding_entity = other_entity_id;
+        collider.colliding_entity_id = other_entity.id;
       }
     });
   }
 };
 
 int main() {
-  macro::Application app;
+  Application app;
 
-  auto background_id = app.generateEntityID();
-  app.getRegistry()
-    .set<macro::component::Vector2>(background_id, Vector2 { 0, 100 })
-    .set<macro::component::Texture>(background_id, "wabbit_alpha.png")
-    .set<InputComponent>(background_id)
-    .set<ColliderComponent>(background_id);
+  auto background = app.generateEntity();
+  background
+    .set<component::Vector2>(Vector2 { 0, 100 })
+    .set<component::Texture>("wabbit_alpha.png")
+    .set<InputComponent>()
+    .set<ColliderComponent>();
 
-  auto test = app.generateEntityID();
-  app.getRegistry()
-    .set<macro::component::Vector2>(test, Vector2 { -100, -100 })
-    .set<macro::component::Texture>(test, "wabbit_alpha.png")
-    .set<ColliderComponent>(test);
+  auto npc = app.generateEntity();
+  npc
+    .set<component::Vector2>(Vector2 { -100, -100 })
+    .set<component::Texture>("wabbit_alpha.png")
+    .set<ColliderComponent>();
 
   app.getSystemManager().set<InputSystem>();
   app.getSystemManager().set<CollisionSystem>();

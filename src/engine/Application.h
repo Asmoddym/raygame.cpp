@@ -3,6 +3,7 @@
 
 # include "raylib.h"
 # include "Registry.h"
+# include "Entity.h"
 # include "SystemManager.h"
 
 namespace macro {
@@ -20,7 +21,7 @@ namespace macro {
 
       void run();
 
-      inline int generateEntityID() { return _entity_count++; }
+      inline Entity generateEntity() { return Entity { _registry, _entity_count++ }; }
 
       // Getters
 

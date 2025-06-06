@@ -12,7 +12,7 @@ pushd build
 [[ $OSTYPE == 'darwin'* ]] && ./premake5.osx gmake2 || ./premake5 gmake2
 popd
 
-make config=${CONFIGURATION}_x64 -j 8
+make config=${CONFIGURATION}_x64
 
 pushd build
 [[ $OSTYPE == 'darwin'* ]] && ./premake5.osx export-compile-commands || ./premake5 export-compile-commands

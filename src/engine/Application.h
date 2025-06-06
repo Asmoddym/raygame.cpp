@@ -3,7 +3,6 @@
 
 # include "raylib.h"
 # include "Registry.h"
-# include "Entity.h"
 # include "SystemManager.h"
 
 namespace macro {

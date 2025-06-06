@@ -6,7 +6,6 @@
 # include <type_traits>
 # include "Component.h"
 
-# include "Debug.h"
 namespace macro {
   class Registry {
     private:

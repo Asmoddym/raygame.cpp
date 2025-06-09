@@ -1,10 +1,12 @@
 #include "engine/macro.h"
+#include "raylib.h"
 
 using namespace macro;
 
 class InputComponent : public Component {};
 class ColliderComponent : public Component {
   public:
+    Vector2 previous_position;
     bool colliding = false;
     int colliding_entity_id = -1;
 };
@@ -18,13 +20,13 @@ class InputSystem : public System {
     }
 
     inline void move(Entity entity) {
-      auto &position = entity.get<component::Vector2>().value;
-      auto &colliding = entity.get<ColliderComponent>().colliding;
+      auto &rectangle = entity.get<component::Value<::Rectangle>>().value;
 
-      if (IsKeyDown(KEY_LEFT) && !colliding) { position.x -= 5; }
-      if (IsKeyDown(KEY_RIGHT) && !colliding) { position.x += 5; }
-      if (IsKeyDown(KEY_UP) && !colliding) { position.y -= 5; }
-      if (IsKeyDown(KEY_DOWN) && !colliding) { position.y += 5; }
+      // TODO: move the condition in CollisionSystem
+      if (IsKeyDown(KEY_LEFT)) { rectangle.x -= 5; }
+      if (IsKeyDown(KEY_RIGHT)) { rectangle.x += 5; }
+      if (IsKeyDown(KEY_UP)) { rectangle.y -= 5; }
+      if (IsKeyDown(KEY_DOWN)) { rectangle.y += 5; }
     }
 };
 
@@ -33,30 +35,36 @@ class CollisionSystem : public System {
 
   public:
   inline virtual void update() override {
-    registry.forEach<component::Vector2, component::Texture>(registry.bind(this, &CollisionSystem::process));
+    registry.forEach<component::Value<::Rectangle>, ColliderComponent>(registry.bind(this, &CollisionSystem::process));
   }
 
   inline void process(Entity entity) {
-    if (entity.has<InputComponent>()) { return; }
-
-    auto &position = entity.get<component::Vector2>().value;
+    auto &rectangle = entity.get<component::Value<::Rectangle>>().value;
     auto &texture = entity.get<component::Texture>().texture;
     auto &collider = entity.get<ColliderComponent>();
 
-    registry.forEach<component::Vector2, component::Texture>([&](Entity other_entity) {
-      if (other_entity.id == entity.id) { return; }
+    registry.forEach<component::Value<::Rectangle>, ColliderComponent>([&](Entity other_entity) {
+        auto &other_rectangle = other_entity.get<component::Value<::Rectangle>>().value;
+        DrawRectangleLinesEx(other_rectangle, 1, RED);
 
-      auto &other_position = other_entity.get<component::Vector2>().value;
-      auto &other_collider = other_entity.get<ColliderComponent>();
+        if (other_entity.id == entity.id) { return; }
 
-      if (other_position.y < position.y) {
-        other_collider.colliding = true;
-        other_collider.colliding_entity_id = entity.id;
+        auto &other_collider = other_entity.get<ColliderComponent>();
 
-        collider.colliding = true;
-        collider.colliding_entity_id = other_entity.id;
-      }
+        if (CheckCollisionRecs(rectangle, other_rectangle)) {
+          DrawRectangleLinesEx(other_rectangle, 2, GREEN);
+          collider.colliding = true;
+        }
     });
+
+    if (collider.colliding) {
+      rectangle.x = collider.previous_position.x;
+      rectangle.y = collider.previous_position.y;
+      collider.colliding = false;
+    } else {
+      collider.previous_position.x = rectangle.x;
+      collider.previous_position.y = rectangle.y;
+    }
   }
 };
 
@@ -65,14 +73,14 @@ int main() {
 
   auto background = app.generateEntity();
   background
-    .set<component::Vector2>(Vector2 { 0, 100 })
+    .set<component::Value<::Rectangle>>(::Rectangle { 0, 100, 32, 32 })
     .set<component::Texture>("wabbit_alpha.png")
     .set<InputComponent>()
     .set<ColliderComponent>();
 
   auto npc = app.generateEntity();
   npc
-    .set<component::Vector2>(Vector2 { -100, -100 })
+    .set<component::Value<::Rectangle>>(::Rectangle { -100, -100, 32, 32 })
     .set<component::Texture>("wabbit_alpha.png")
     .set<ColliderComponent>();
 

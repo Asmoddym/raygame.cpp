@@ -4,10 +4,10 @@
 #include "component/Value.h"
 
 void macro::system::Draw::update() {
-  registry.forEach<component::Vector2, component::Texture>([&](Entity entity) {
-    auto &position = entity.get<component::Vector2>().value;
+  registry.forEach<component::Value<::Rectangle>, component::Texture>([&](Entity entity) {
+    auto &rect = entity.get<component::Value<::Rectangle>>().value;
     auto &texture = entity.get<component::Texture>().texture;
 
-    DrawTexture(texture, (int)position.x, (int)position.y, WHITE);
+    DrawTexture(texture, (int)rect.x, (int)rect.y, WHITE);
   });
 }

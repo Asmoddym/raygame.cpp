@@ -1,10 +1,14 @@
 #include "engine/macro.h"
-#include "raylib.h"
-#include "system/Draw.h"
 
 using namespace macro;
 
-class InputComponent : public Component {};
+struct InputComponent : public Component {};
+struct SeekComponent : public Component {
+  int seekId = 0;
+
+  inline SeekComponent(int id) : seekId { id } {}
+  inline virtual ~SeekComponent() {}
+};
 
 typedef component::Value<Vector2> ColliderComponent;
 
@@ -30,12 +34,12 @@ class InputSystem : public System {
 class CollisionSystem : public System {
   DefineSystem(CollisionSystem);
 
-  bool _show_bounds = false;
+  bool m_showBounds = false;
 
   public:
     inline virtual void update() override {
       if (IsKeyPressed(KEY_B)) {
-        _show_bounds = !_show_bounds;
+        m_showBounds = !m_showBounds;
       }
 
       registry.forEach<component::Value<::Rectangle>, ColliderComponent>(registry.bind(this, &CollisionSystem::process));
@@ -54,12 +58,12 @@ class CollisionSystem : public System {
         auto &other_collider = other_entity.get<ColliderComponent>().value;
 
         if (CheckCollisionRecs(rectangle, other_rectangle)) {
-          if (_show_bounds) { DrawRectangleLinesEx(other_rectangle, 2, YELLOW); }
+          if (m_showBounds) { DrawRectangleLinesEx(other_rectangle, 2, YELLOW); }
 
           //TODO: find a better way to handle this, maybe just remove it for now?
           colliding = true;
         } else {
-          if (_show_bounds) { DrawRectangleLinesEx(other_rectangle, 1, GREEN); }
+          if (m_showBounds) { DrawRectangleLinesEx(other_rectangle, 1, GREEN); }
         }
       });
 
@@ -73,11 +77,33 @@ class CollisionSystem : public System {
     }
 };
 
+class SeekSystem : public System {
+  DefineSystem(SeekSystem);
+
+  public:
+    inline virtual void update() override {
+      registry.forEach<component::Value<Rectangle>, SeekComponent>([&](Entity e) {
+        auto &entityToSeekRect = registry.get<component::Value<Rectangle>>(e.get<SeekComponent>().seekId).value;
+        auto &entityRect = e.get<component::Value<Rectangle>>().value;
+
+        auto x1 = entityRect.x;
+        auto y1 = entityRect.y;
+        auto x2 = entityToSeekRect.x;
+        auto y2 = entityToSeekRect.y;
+        auto m = (y2 - y1) / (x2 - x1);
+        auto b = y1 - m * x1;
+
+        entityRect.x += (entityToSeekRect.x < entityRect.x ? -0.2 : 0.2);
+        entityRect.y = m * entityRect.x + b;
+      });
+    }
+};
+
 int main() {
   Application app;
 
-  auto background = app.generateEntity();
-  background
+  auto player = app.generateEntity();
+  player
     //TODO: override this to improve constructor
     .set<component::Value<::Rectangle>>(::Rectangle { 0, 100, 32, 32 })
     .set<component::Texture>("wabbit_alpha.png")
@@ -88,10 +114,12 @@ int main() {
   npc
     .set<component::Value<::Rectangle>>(::Rectangle { -100, -100, 32, 32 })
     .set<component::Texture>("wabbit_alpha.png")
+    .set<SeekComponent>(player.id)
     .set<ColliderComponent>(Vector2 { -100, -100 });
 
   app.getSystemManager().set<InputSystem>();
   app.getSystemManager().set<CollisionSystem>();
+  app.getSystemManager().set<SeekSystem>();
 
   app.run();
 

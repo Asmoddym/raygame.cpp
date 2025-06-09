@@ -8,11 +8,11 @@
 namespace macro {
   class Application {
     private:
-      Registry _registry;
-      SystemManager _system_manager { _registry };
+      Registry m_registry;
+      SystemManager m_systemManager { m_registry };
 
-      int _entity_count = 0;
-      Camera2D _camera = { 0 };
+      int m_entityCount = 0;
+      Camera2D m_camera = { 0 };
 
     public:
       Application();
@@ -20,12 +20,12 @@ namespace macro {
 
       void run();
 
-      inline Entity generateEntity() { return Entity { _registry, _entity_count++ }; }
+      inline Entity generateEntity() { return Entity { m_registry, m_entityCount++ }; }
 
       // Getters
 
-      inline Registry &getRegistry() { return _registry; }
-      inline SystemManager &getSystemManager() { return _system_manager; }
+      inline Registry &getRegistry() { return m_registry; }
+      inline SystemManager &getSystemManager() { return m_systemManager; }
   };
 }
 

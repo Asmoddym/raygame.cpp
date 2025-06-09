@@ -19,11 +19,11 @@ macro::Application::Application() {
   SearchAndSetResourceDir("resources");
   SetTargetFPS(144);
 
-  _camera.offset = ::Vector2 { size.x / 2.f, size.y / 2.f };
-  _camera.rotation = 0.0f;
-  _camera.zoom = 1.0f;
+  m_camera.offset = ::Vector2 { size.x / 2.f, size.y / 2.f };
+  m_camera.rotation = 0.0f;
+  m_camera.zoom = 1.0f;
 
-  _system_manager.set<system::Draw>();
+  m_systemManager.set<system::Draw>();
 }
 
 void macro::Application::run() {
@@ -31,12 +31,12 @@ void macro::Application::run() {
 
   while (!WindowShouldClose()) {
     BeginDrawing();
-    BeginMode2D(_camera);
+    BeginMode2D(m_camera);
 
     DebugIf(Timer::reset());
 
     ClearBackground(BLACK);
-    _system_manager.update();
+    m_systemManager.update();
 
     EndMode2D();
     DebugIf(DrawText(Concatenate(GetFPS(), " FPS (", Timer::since(), "ms)").c_str(), 10, 10, 20, LIME));

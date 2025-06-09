@@ -28,13 +28,13 @@ namespace macro {
   };
 
     private:
-      std::vector<Component *> _components;
-      std::unordered_map<int, std::vector<Component *>> _entities;
+      std::vector<Component *> m_components;
+      std::unordered_map<int, std::vector<Component *>> m_entities;
 
     public:
       inline Registry() {}
       inline virtual ~Registry() {
-        for (auto &&component: _components) {
+        for (auto &&component: m_components) {
           delete component;
         }
       }
@@ -43,15 +43,15 @@ namespace macro {
         inline Registry &set(int entity_id, Args&&... args) {
           C *c = new C(args...);
 
-          _components.emplace_back(c);
-          _entities[entity_id].emplace_back(c);
+          m_components.emplace_back(c);
+          m_entities[entity_id].emplace_back(c);
 
           return *this;
         }
 
       template<typename C>
         inline C &get(int entity_id) {
-          auto &components = _entities[entity_id];
+          auto &components = m_entities[entity_id];
           auto it = std::find_if(components.begin(), components.end(), [&](const Component *i) { return dynamic_cast<const C *>(i); });
 
           if (it == components.end()) {
@@ -63,7 +63,7 @@ namespace macro {
 
       template<typename C>
         inline bool has(int entity_id) {
-          auto &components = _entities[entity_id];
+          auto &components = m_entities[entity_id];
           auto it = std::find_if(components.begin(), components.end(), [&](const Component *i) { return dynamic_cast<const C *>(i); });
 
           return it != components.end();
@@ -73,7 +73,7 @@ namespace macro {
         inline void forEach(std::function<void (Entity)> const &fn) {
           assert_component_list<Cs...>();
 
-          for (auto &&pair: _entities) {
+          for (auto &&pair: m_entities) {
             int matches = 0;
 
             ([&]() {

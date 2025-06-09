@@ -1,15 +1,12 @@
 #include "engine/macro.h"
 #include "raylib.h"
+#include "system/Draw.h"
 
 using namespace macro;
 
 class InputComponent : public Component {};
-class ColliderComponent : public Component {
-  public:
-    Vector2 previous_position;
-    bool colliding = false;
-    int colliding_entity_id = -1;
-};
+
+typedef component::Value<Vector2> ColliderComponent;
 
 class InputSystem : public System {
   DefineSystem(InputSystem);
@@ -33,39 +30,47 @@ class InputSystem : public System {
 class CollisionSystem : public System {
   DefineSystem(CollisionSystem);
 
+  bool _show_bounds = false;
+
   public:
-  inline virtual void update() override {
-    registry.forEach<component::Value<::Rectangle>, ColliderComponent>(registry.bind(this, &CollisionSystem::process));
-  }
+    inline virtual void update() override {
+      if (IsKeyPressed(KEY_B)) {
+        _show_bounds = !_show_bounds;
+      }
 
-  inline void process(Entity entity) {
-    auto &rectangle = entity.get<component::Value<::Rectangle>>().value;
-    auto &texture = entity.get<component::Texture>().texture;
-    auto &collider = entity.get<ColliderComponent>();
+      registry.forEach<component::Value<::Rectangle>, ColliderComponent>(registry.bind(this, &CollisionSystem::process));
+    }
 
-    registry.forEach<component::Value<::Rectangle>, ColliderComponent>([&](Entity other_entity) {
-        auto &other_rectangle = other_entity.get<component::Value<::Rectangle>>().value;
-        DrawRectangleLinesEx(other_rectangle, 1, RED);
+    inline void process(Entity entity) {
+      auto &rectangle = entity.get<component::Value<::Rectangle>>().value;
+      auto &texture = entity.get<component::Texture>().texture;
+      auto &collider = entity.get<ColliderComponent>().value;
+      bool colliding = false;
 
+      registry.forEach<component::Value<::Rectangle>, ColliderComponent>([&](Entity other_entity) {
         if (other_entity.id == entity.id) { return; }
 
-        auto &other_collider = other_entity.get<ColliderComponent>();
+        auto &other_rectangle = other_entity.get<component::Value<::Rectangle>>().value;
+        auto &other_collider = other_entity.get<ColliderComponent>().value;
 
         if (CheckCollisionRecs(rectangle, other_rectangle)) {
-          DrawRectangleLinesEx(other_rectangle, 2, GREEN);
-          collider.colliding = true;
-        }
-    });
+          if (_show_bounds) { DrawRectangleLinesEx(other_rectangle, 2, YELLOW); }
 
-    if (collider.colliding) {
-      rectangle.x = collider.previous_position.x;
-      rectangle.y = collider.previous_position.y;
-      collider.colliding = false;
-    } else {
-      collider.previous_position.x = rectangle.x;
-      collider.previous_position.y = rectangle.y;
+          //TODO: find a better way to handle this, maybe just remove it for now?
+          colliding = true;
+        } else {
+          if (_show_bounds) { DrawRectangleLinesEx(other_rectangle, 1, GREEN); }
+        }
+      });
+
+      if (colliding) {
+        rectangle.x = collider.x;
+        rectangle.y = collider.y;
+      } else {
+        collider.x = rectangle.x;
+        collider.y = rectangle.y;
+      }
     }
-  }
 };
 
 int main() {
@@ -73,16 +78,17 @@ int main() {
 
   auto background = app.generateEntity();
   background
+    //TODO: override this to improve constructor
     .set<component::Value<::Rectangle>>(::Rectangle { 0, 100, 32, 32 })
     .set<component::Texture>("wabbit_alpha.png")
     .set<InputComponent>()
-    .set<ColliderComponent>();
+    .set<ColliderComponent>(Vector2 { 0, 100 });
 
   auto npc = app.generateEntity();
   npc
     .set<component::Value<::Rectangle>>(::Rectangle { -100, -100, 32, 32 })
     .set<component::Texture>("wabbit_alpha.png")
-    .set<ColliderComponent>();
+    .set<ColliderComponent>(Vector2 { -100, -100 });
 
   app.getSystemManager().set<InputSystem>();
   app.getSystemManager().set<CollisionSystem>();

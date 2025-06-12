@@ -13,7 +13,7 @@ macro::Application::Application() {
 
   Vector2 size = Vector2 { 1280, 720 };
 
-  // Taken from https://github.com/raysan5/raylib/discussions/2999
+  // Taken from https://github.com/raysan5/raylib/discussions/2999, basically OSX has a weird way through HigpDPI to handle their resolutions
   SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
   InitWindow((int)size.x, (int)size.y, "raylib [core] example - 2d camera");
   SearchAndSetResourceDir("resources");

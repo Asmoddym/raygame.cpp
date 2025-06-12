@@ -1,4 +1,6 @@
 #include "engine/macro.h"
+#include "raylib.h"
+#include <cmath>
 
 using namespace macro;
 
@@ -10,7 +12,10 @@ struct SeekComponent : public Component {
   inline virtual ~SeekComponent() {}
 };
 
-typedef component::Value<Vector2> ColliderComponent;
+
+struct ColliderComponent : public component::Value<Vector2> {
+  ColliderComponent() : component::Value<Vector2> { Vector2 { 0, 0 } } {}
+};
 
 class InputSystem : public System {
   DefineSystem(InputSystem);
@@ -47,23 +52,28 @@ class CollisionSystem : public System {
 
     inline void process(Entity entity) {
       auto &rectangle = entity.get<component::Value<::Rectangle>>().value;
+      if (m_showBounds) {
+        DrawRectangleLinesEx(rectangle, 1, GREEN);
+      }
+
       auto &texture = entity.get<component::Texture>().texture;
       auto &collider = entity.get<ColliderComponent>().value;
       bool colliding = false;
 
       registry.forEach<component::Value<::Rectangle>, ColliderComponent>([&](Entity other_entity) {
+        if (colliding) { return; }
         if (other_entity.id == entity.id) { return; }
 
         auto &other_rectangle = other_entity.get<component::Value<::Rectangle>>().value;
         auto &other_collider = other_entity.get<ColliderComponent>().value;
 
         if (CheckCollisionRecs(rectangle, other_rectangle)) {
-          if (m_showBounds) { DrawRectangleLinesEx(other_rectangle, 2, YELLOW); }
+          if (m_showBounds) {
+            DrawRectangleLinesEx(rectangle, 2, YELLOW);
+            DrawRectangleLinesEx(other_rectangle, 2, RED);
+          }
 
-          //TODO: find a better way to handle this, maybe just remove it for now?
           colliding = true;
-        } else {
-          if (m_showBounds) { DrawRectangleLinesEx(other_rectangle, 1, GREEN); }
         }
       });
 
@@ -85,16 +95,6 @@ class SeekSystem : public System {
       registry.forEach<component::Value<Rectangle>, SeekComponent>([&](Entity e) {
         auto &entityToSeekRect = registry.get<component::Value<Rectangle>>(e.get<SeekComponent>().seekId).value;
         auto &entityRect = e.get<component::Value<Rectangle>>().value;
-
-        auto x1 = entityRect.x;
-        auto y1 = entityRect.y;
-        auto x2 = entityToSeekRect.x;
-        auto y2 = entityToSeekRect.y;
-        auto m = (y2 - y1) / (x2 - x1);
-        auto b = y1 - m * x1;
-
-        entityRect.x += (entityToSeekRect.x < entityRect.x ? -0.2 : 0.2);
-        entityRect.y = m * entityRect.x + b;
       });
     }
 };
@@ -108,14 +108,14 @@ int main() {
     .set<component::Value<::Rectangle>>(::Rectangle { 0, 100, 32, 32 })
     .set<component::Texture>("wabbit_alpha.png")
     .set<InputComponent>()
-    .set<ColliderComponent>(Vector2 { 0, 100 });
+    .set<ColliderComponent>();
 
   auto npc = app.generateEntity();
   npc
     .set<component::Value<::Rectangle>>(::Rectangle { -100, -100, 32, 32 })
     .set<component::Texture>("wabbit_alpha.png")
     .set<SeekComponent>(player.id)
-    .set<ColliderComponent>(Vector2 { -100, -100 });
+    .set<ColliderComponent>();
 
   app.getSystemManager().set<InputSystem>();
   app.getSystemManager().set<CollisionSystem>();

@@ -1,40 +1,45 @@
-#include "Application.hpp"
+#include "Application.h"
+#include "Debug.h"
 #include "raylib.h"
-#include "utils/Ini.hpp"
-#include "utils/Log.hpp"
-#include "utils/Timer.hpp"
 #include "resource_dir.h"
 
-macro::Application::Application() {
-  Log::d("Constructing Application");
+#include "lib/Timer.h"
+#include "lib/Concatenate.h"
 
-  InitWindow(1920, 1080, "raylib [core] example - 2d camera");
+#include "system/Draw.h"
+
+macro::Application::Application() {
+  DebugLog("Constructing Application");
+
+  Vector2 size = Vector2 { 1280, 720 };
+
+  // Taken from https://github.com/raysan5/raylib/discussions/2999, basically OSX has a weird way through HigpDPI to handle their resolutions
+  SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
+  InitWindow((int)size.x, (int)size.y, "raylib [core] example - 2d camera");
   SearchAndSetResourceDir("resources");
   SetTargetFPS(144);
-}
 
-macro::Application::~Application() {
-  Log::d("Destroying Application");
+  m_camera.offset = ::Vector2 { size.x / 2.f, size.y / 2.f };
+  m_camera.rotation = 0.0f;
+  m_camera.zoom = 1.0f;
+
+  m_systemManager.set<system::Draw>();
 }
 
 void macro::Application::run() {
   Log::d("Running!");
 
-
-  utils::Ini ini("test.ini");
-return ;
-
   while (!WindowShouldClose()) {
     BeginDrawing();
-    BeginMode2D(_scene.getCamera());
-    IF_DEBUG(utils::Timer::reset());
+    BeginMode2D(m_camera);
+
+    DebugIf(Timer::reset());
+
     ClearBackground(BLACK);
+    m_systemManager.update();
 
-    _scene.update();
-
-    IF_DEBUG(Log::d("> ", utils::Timer::since(), "ms"));
     EndMode2D();
-    DrawFPS(0, 0);
+    DebugIf(DrawText(Concatenate(GetFPS(), " FPS (", Timer::since(), "ms)").c_str(), 10, 10, 20, LIME));
     EndDrawing();
   }
 

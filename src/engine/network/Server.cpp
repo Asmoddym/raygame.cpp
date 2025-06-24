@@ -118,7 +118,7 @@ if (ioctlsocket(ListenSocket,
         iResult = 1;
         // Receive until the peer shuts down the connection
         while (iResult > 0 && count < 3) {
-          Sleep(2000);
+          Sleep(16);
           PrintError("checking...");
           unsigned long howMuchInBuffer = 0;
           ioctlsocket(ClientSocket, FIONREAD,
@@ -130,7 +130,8 @@ if (ioctlsocket(ListenSocket,
             iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
             PrintError("coucou");
             if (iResult > 0) {
-              PrintError("Bytes received: %d", iResult);
+              recvbuf[iResult] = 0;
+              PrintError("Bytes received: %d", iResult, recvbuf);
 
               // Echo the buffer back to the sender
               iSendResult = send( ClientSocket, recvbuf, iResult, 0 );
@@ -178,7 +179,7 @@ if (ioctlsocket(ListenSocket,
 int getStatus(const SOCKET a_socket, int status)
 {
     // zero seconds, zero milliseconds. max time select call allowd to block
-    static timeval instantSpeedPlease = { 0, 0 };
+    static timeval instantSpeedPlease = { 0, 16000 };
     fd_set a = { 1, {a_socket} };
     fd_set * read = ((status & 0x1) != 0) ? &a : NULL;
     fd_set * write = ((status & 0x2) != 0) ? &a : NULL;

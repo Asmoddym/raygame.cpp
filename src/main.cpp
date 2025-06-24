@@ -99,7 +99,7 @@ class SeekSystem : public System {
     }
 };
 
-int main() {
+int main(const int ac, const char **av) {
   Application app;
 
   auto player = app.generateEntity();
@@ -121,7 +121,7 @@ int main() {
   app.getSystemManager().set<CollisionSystem>();
   app.getSystemManager().set<SeekSystem>();
 
-  app.run();
+  app.run(ac > 1);
 
   return 0;
 }

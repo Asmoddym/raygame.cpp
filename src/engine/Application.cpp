@@ -26,8 +26,14 @@ macro::Application::Application() {
   m_systemManager.set<system::Draw>();
 }
 
-void macro::Application::run() {
+void macro::Application::run(bool server) {
   Log::d("Running!");
+
+  if (server) {
+    m_server.run();
+  } else {
+    m_client.run();
+  }
 
   while (!WindowShouldClose()) {
     BeginDrawing();

@@ -1,4 +1,4 @@
-#include "Client.h"
+#include "network/Client.h"
 #define WIN32_LEAN_AND_MEAN
 
 #include "Log.h"

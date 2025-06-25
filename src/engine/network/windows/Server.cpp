@@ -1,4 +1,4 @@
-#include "Server.h"
+#include "network/Server.h"
 #undef UNICODE
 
 #define WIN32_LEAN_AND_MEAN

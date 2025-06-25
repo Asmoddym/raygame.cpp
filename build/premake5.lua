@@ -188,14 +188,17 @@ if (downloadRaylib) then
             defines{"_WIN32"}
             links {"winmm", "gdi32", "opengl32"}
             libdirs {"../bin/%{cfg.buildcfg}"}
+            removefiles { "../src/engine/network/unix/**.cpp" }
 
         filter "system:linux"
             links {"pthread", "m", "dl", "rt", "X11"}
             buildoptions { "-std=c++17" }
+            removefiles { "../src/engine/network/windows/**.cpp" }
 
         filter "system:macosx"
             links {"OpenGL.framework", "Cocoa.framework", "IOKit.framework", "CoreFoundation.framework", "CoreAudio.framework", "CoreVideo.framework", "AudioToolbox.framework"}
             buildoptions { "-std=c++17" }
+            removefiles { "../src/engine/network/windows/**.cpp" }
 
         filter{}
 		

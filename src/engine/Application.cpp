@@ -33,13 +33,13 @@ void macro::Application::run() {
     BeginDrawing();
     BeginMode2D(m_camera);
 
-    DebugIf(Timer::reset());
+    Timer::reset();
 
     ClearBackground(BLACK);
     m_systemManager.update();
 
     EndMode2D();
-    DebugIf(DrawText(Concatenate(GetFPS(), " FPS (", Timer::since(), "ms)").c_str(), 10, 10, 20, LIME));
+    DrawText(Concatenate(GetFPS(), " FPS (", Timer::since(), "ms)").c_str(), 10, 10, 20, LIME);
     EndDrawing();
   }
 

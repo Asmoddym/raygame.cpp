@@ -91,6 +91,11 @@ class CollisionSystem : public System {
           }
         }
 
+        // FIXME: This system won't work because previously updated entities can be touched, so this will break next iterations.
+        // Perhaps there should be 2 systems:
+        // - 1 system to check for collisions and put them in ColliderComponent
+        // - 1 system to apply these collisions, either until there is no more collision with this particular item, or set the current collision to the next element (may not work if the object collides with multiple items)
+        // In essence, how to handle multiple collisions at the same time?
         if (yDelta != 0 && CheckCollisionRecs({ previousPosition.x, rectangle.y, rectangle.width, rectangle.height }, otherRectangle)) {
           auto collidingUp = rectangle.y + rectangle.height > otherRectangle.y && rectangle.y < otherRectangle.y;
           auto collidingDown = rectangle.y < otherRectangle.y + otherRectangle.height && rectangle.y > otherRectangle.y;

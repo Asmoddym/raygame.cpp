@@ -74,35 +74,29 @@ class CollisionSystem : public System {
 
         // Checking x collisions independently from y collisions, as both could be triggered at the same time.
         // If x collision is at fault, y collision would be impacted because both axes would have been moved (and vice-versa).
+        // For each, if a collision was detected, move to the closest we can get to the edge of the incrimated axis.
 
         if (xMoved && CheckCollisionRecs({ rectangle.x, previousPosition.y, rectangle.width, rectangle.height }, otherRectangle)) {
-          // wanting to go right
-          if (rectangle.x + rectangle.width > otherRectangle.x && rectangle.x < otherRectangle.x) {
-            newRectangle.x = previousPosition.x;
-          }
+          const auto movingRight = rectangle.x + rectangle.width > otherRectangle.x && rectangle.x < otherRectangle.x;
+          const auto movingLeft = rectangle.x < otherRectangle.x + otherRectangle.width && rectangle.x > otherRectangle.x;
 
-          // wanting to go left
-          if (rectangle.x < otherRectangle.x + otherRectangle.width && rectangle.x > otherRectangle.x) {
-            newRectangle.x = previousPosition.x;
+          if (movingLeft || movingRight) {
+            newRectangle.x = otherRectangle.x + (movingLeft ? 1 : -1) * otherRectangle.width;
           }
         }
 
         if (yMoved && CheckCollisionRecs({ previousPosition.x, rectangle.y, rectangle.width, rectangle.height }, otherRectangle)) {
-          // wanting to go down
-          if (rectangle.y + rectangle.height > otherRectangle.y && rectangle.y < otherRectangle.y) {
-            newRectangle.y = previousPosition.y;
-          }
+          auto movingDown = rectangle.y + rectangle.height > otherRectangle.y && rectangle.y < otherRectangle.y;
+          auto movingUp = rectangle.y < otherRectangle.y + otherRectangle.height && rectangle.y > otherRectangle.y;
 
-          // wanting to go up
-          if (rectangle.y < otherRectangle.y + otherRectangle.height && rectangle.y > otherRectangle.y) {
-            newRectangle.y = previousPosition.y;
+          if (movingDown || movingUp) {
+            newRectangle.y = otherRectangle.y + (movingUp ? 1 : -1) * otherRectangle.height;
           }
         }
 
         rectangle = newRectangle;
       });
 
-      // TODO: This is bad as it assumes there is 1 movable entity
       if (m_showBounds) {
         DrawRectangleLinesEx(rectangle, 1, GREEN);
       }

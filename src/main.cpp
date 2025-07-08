@@ -1,38 +1,38 @@
 #include "engine/macro.h"
-#include "raylib.h"
-#include <cmath>
 
 using namespace macro;
 
-struct InputComponent : public Component {};
-struct SeekComponent : public Component {
-  int seekId = 0;
+struct MovableComponent : public Component {
+  Vector2 previousPosition;
 
-  inline SeekComponent(int id) : seekId { id } {}
-  inline virtual ~SeekComponent() {}
+  inline MovableComponent(Vector2 v) : previousPosition { v } {}
 };
-
 
 struct ColliderComponent : public component::Value<Vector2> {
-  ColliderComponent() : component::Value<Vector2> { Vector2 { 0, 0 } } {}
+  bool movable = false;
+
+  ColliderComponent(bool mov = false) : component::Value<Vector2> { Vector2 { 0, 0 } }, movable { mov } {}
 };
 
-class InputSystem : public System {
-  DefineSystem(InputSystem);
+class MoveSystem : public System {
+  DefineSystem(MoveSystem);
 
   public:
     inline virtual void update() override {
-      registry.forEach<InputComponent>(registry.bind(this, &InputSystem::move));
+      registry.forEach<MovableComponent>(registry.bind(this, &MoveSystem::move));
     }
 
     inline void move(Entity entity) {
-      auto &rectangle = entity.get<component::Value<::Rectangle>>().value;
+      auto &rect = entity.get<component::Value<::Rectangle>>().value;
+      auto &previousPosition = entity.get<MovableComponent>().previousPosition;
 
-      // TODO: move the condition in CollisionSystem
-      if (IsKeyDown(KEY_LEFT)) { rectangle.x -= 5; }
-      if (IsKeyDown(KEY_RIGHT)) { rectangle.x += 5; }
-      if (IsKeyDown(KEY_UP)) { rectangle.y -= 5; }
-      if (IsKeyDown(KEY_DOWN)) { rectangle.y += 5; }
+      previousPosition.x = rect.x;
+      previousPosition.y = rect.y;
+
+      if (IsKeyDown(KEY_LEFT)) { rect.x -= 3; }
+      if (IsKeyDown(KEY_RIGHT)) { rect.x += 3; }
+      if (IsKeyDown(KEY_UP)) { rect.y -= 3; }
+      if (IsKeyDown(KEY_DOWN)) { rect.y += 3; }
     }
 };
 
@@ -47,56 +47,84 @@ class CollisionSystem : public System {
         m_showBounds = !m_showBounds;
       }
 
-      registry.forEach<component::Value<::Rectangle>, ColliderComponent>(registry.bind(this, &CollisionSystem::process));
+      registry.forEach<component::Value<::Rectangle>, MovableComponent>(registry.bind(this, &CollisionSystem::process));
     }
 
     inline void process(Entity entity) {
       auto &rectangle = entity.get<component::Value<::Rectangle>>().value;
-      if (m_showBounds) {
-        DrawRectangleLinesEx(rectangle, 1, GREEN);
-      }
+      auto &previousPosition = entity.get<MovableComponent>().previousPosition;
 
-      auto &texture = entity.get<component::Texture>().texture;
-      auto &collider = entity.get<ColliderComponent>().value;
-      bool colliding = false;
+      bool xMoved = rectangle.x != previousPosition.x;
+      bool yMoved = rectangle.y != previousPosition.y;
 
-      registry.forEach<component::Value<::Rectangle>, ColliderComponent>([&](Entity other_entity) {
-        if (colliding) { return; }
-        if (other_entity.id == entity.id) { return; }
+      // TODO: collidable components should have their own position and dimensions instead of using Rectangle
+      registry.forEach<component::Value<::Rectangle>, ColliderComponent>([&](Entity otherEntity) {
+        // We don't want to check entity's properties against itself
+        if (otherEntity.id == entity.id) { return; }
 
-        auto &other_rectangle = other_entity.get<component::Value<::Rectangle>>().value;
-        auto &other_collider = other_entity.get<ColliderComponent>().value;
+        auto &otherRectangle = otherEntity.get<component::Value<::Rectangle>>().value;
+        auto newRectangle = rectangle;
 
-        if (CheckCollisionRecs(rectangle, other_rectangle)) {
-          if (m_showBounds) {
-            DrawRectangleLinesEx(rectangle, 2, YELLOW);
-            DrawRectangleLinesEx(other_rectangle, 2, RED);
+        if (m_showBounds) {
+          auto collision = GetCollisionRec(otherRectangle, rectangle);
+
+          DrawRectangleLinesEx(otherRectangle, 1, BLUE);
+          DrawRectangleLinesEx(collision, 1, YELLOW);
+        }
+
+        // Checking x collisions independently from y collisions, as both could be triggered at the same time.
+        // If x collision is at fault, y collision would be impacted because both axes would have been moved (and vice-versa).
+
+        if (xMoved && CheckCollisionRecs({ rectangle.x, previousPosition.y, rectangle.width, rectangle.height }, otherRectangle)) {
+          // wanting to go right
+          if (rectangle.x + rectangle.width > otherRectangle.x && rectangle.x < otherRectangle.x) {
+            newRectangle.x = previousPosition.x;
           }
 
-          colliding = true;
+          // wanting to go left
+          if (rectangle.x < otherRectangle.x + otherRectangle.width && rectangle.x > otherRectangle.x) {
+            newRectangle.x = previousPosition.x;
+          }
         }
+
+        if (yMoved && CheckCollisionRecs({ previousPosition.x, rectangle.y, rectangle.width, rectangle.height }, otherRectangle)) {
+          // wanting to go down
+          if (rectangle.y + rectangle.height > otherRectangle.y && rectangle.y < otherRectangle.y) {
+            newRectangle.y = previousPosition.y;
+          }
+
+          // wanting to go up
+          if (rectangle.y < otherRectangle.y + otherRectangle.height && rectangle.y > otherRectangle.y) {
+            newRectangle.y = previousPosition.y;
+          }
+        }
+
+        rectangle = newRectangle;
       });
 
-      if (colliding) {
-        rectangle.x = collider.x;
-        rectangle.y = collider.y;
-      } else {
-        collider.x = rectangle.x;
-        collider.y = rectangle.y;
+      // TODO: This is bad as it assumes there is 1 movable entity
+      if (m_showBounds) {
+        DrawRectangleLinesEx(rectangle, 1, GREEN);
       }
     }
 };
 
-class SeekSystem : public System {
-  DefineSystem(SeekSystem);
+struct Map {
+  static std::vector<std::string> const lines() {
+    return { "000000000", "0000", "0000000" };
+  }
 
-  public:
-    inline virtual void update() override {
-      registry.forEach<component::Value<Rectangle>, SeekComponent>([&](Entity e) {
-        auto &entityToSeekRect = registry.get<component::Value<Rectangle>>(e.get<SeekComponent>().seekId).value;
-        auto &entityRect = e.get<component::Value<Rectangle>>().value;
-      });
+  static void generate(Application &app) {
+    int y = 0;
+    for (auto &&l: lines()) {
+      int x = 0;
+      for (auto &&c: l) {
+        app.generateEntity().set<component::Value<::Rectangle>>(::Rectangle { (float)x * 32, (float)y * 32, 32, 32, }).set<component::Texture>("wabbit_alpha.png").set<ColliderComponent>();
+        x++;
+      }
+      y++;
     }
+  }
 };
 
 int main() {
@@ -105,21 +133,22 @@ int main() {
   auto player = app.generateEntity();
   player
     //TODO: override this to improve constructor
-    .set<component::Value<::Rectangle>>(::Rectangle { 0, 100, 32, 32 })
+    // this is used to get the entity's position to draw (maybe should be its own dedicated stuff, PositionComponent + DimensionsComponent for example)
+    .set<component::Value<::Rectangle>>(::Rectangle { 200, 200, 32, 32 })
     .set<component::Texture>("wabbit_alpha.png")
-    .set<InputComponent>()
-    .set<ColliderComponent>();
+    .set<MovableComponent>(::Vector2 { 200, 200 })
+    .set<ColliderComponent>(true);
 
   auto npc = app.generateEntity();
   npc
     .set<component::Value<::Rectangle>>(::Rectangle { -100, -100, 32, 32 })
     .set<component::Texture>("wabbit_alpha.png")
-    .set<SeekComponent>(player.id)
-    .set<ColliderComponent>();
+    .set<ColliderComponent>(false);
 
-  app.getSystemManager().set<InputSystem>();
+  app.getSystemManager().set<MoveSystem>();
   app.getSystemManager().set<CollisionSystem>();
-  app.getSystemManager().set<SeekSystem>();
+
+  Map::generate(app);
 
   app.run();
 

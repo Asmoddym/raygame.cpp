@@ -137,28 +137,65 @@ struct Map {
   }
 };
 
+struct Particle : public Component {
+  float mass = 1;
+  Vector2 position;
+  Vector2 velocity;
+
+  inline Particle(Vector2 p) : position { p }, velocity { 0.f, 0.f } {}
+};
+
+class ParticleSystem : public System {
+  DefineSystem(ParticleSystem);
+
+  inline void update() override {
+    static float step = 0.05;
+
+    registry.forEach<Particle>([&](Entity e) {
+      auto &p = e.get<Particle>();
+
+      Vector2 force = { 0, p.mass * 9.81f };
+      Vector2 acceleration = { force.x / p.mass, force.y / p.mass };
+
+      p.velocity.x = p.velocity.x + acceleration.x * step;
+      p.velocity.y = p.velocity.y + acceleration.y * step;
+
+      p.position.x = p.position.x + p.velocity.x * step;
+      p.position.y = p.position.y + p.velocity.y * step;
+
+      e.get<component::Value<::Rectangle>>().value.x = p.position.x;
+      e.get<component::Value<::Rectangle>>().value.y = p.position.y;
+    });
+  }
+};
+
 int main() {
   Application app;
 
-  auto player = app.generateEntity();
-  player
-    //TODO: override this to improve constructor
-    // this is used to get the entity's position to draw (maybe should be its own dedicated stuff, PositionComponent + DimensionsComponent for example)
-    .set<component::Value<::Rectangle>>(::Rectangle { 200, 200, 32, 32 })
-    .set<component::Texture>("wabbit_alpha.png")
-    .set<MovableComponent>()
-    .set<ColliderComponent>(false);
+  auto e1 = app.generateEntity().set<Particle>(Vector2 { 0.f, 0.f}).set<component::Texture>("wabbit_alpha.png").set<component::Value<::Rectangle>>(::Rectangle { -200, -200, 32, 32 });
+  // auto e2 = app.generateEntity().set<Particle>(Vector2 { 0.f, 0.f}).set<component::Texture>("wabbit_alpha.png").set<component::Value<::Rectangle>>(::Rectangle { -200, -200, 32, 32 });
 
-  auto npc = app.generateEntity();
-  npc
-    .set<component::Value<::Rectangle>>(::Rectangle { -100, 30, 32, 32 })
-    .set<component::Texture>("wabbit_alpha.png")
-    .set<ColliderComponent>(true);
+  app.getSystemManager().set<ParticleSystem>();
 
-  app.getSystemManager().set<MoveSystem>();
-  app.getSystemManager().set<CollisionSystem>();
-
-  Map::generate(app);
+  // auto player = app.generateEntity();
+  // player
+  //   //TODO: override this to improve constructor
+  //   // this is used to get the entity's position to draw (maybe should be its own dedicated stuff, PositionComponent + DimensionsComponent for example)
+  //   .set<component::Value<::Rectangle>>(::Rectangle { 200, 200, 32, 32 })
+  //   .set<component::Texture>("wabbit_alpha.png")
+  //   .set<MovableComponent>()
+  //   .set<ColliderComponent>(false);
+  //
+  // auto npc = app.generateEntity();
+  // npc
+  //   .set<component::Value<::Rectangle>>(::Rectangle { -100, 30, 32, 32 })
+  //   .set<component::Texture>("wabbit_alpha.png")
+  //   .set<ColliderComponent>(true);
+  //
+  // app.getSystemManager().set<MoveSystem>();
+  // app.getSystemManager().set<CollisionSystem>();
+  //
+  // Map::generate(app);
 
   app.run();
 

@@ -150,11 +150,12 @@ class ParticleSystem : public System {
 
   inline void update() override {
     static float step = 0.05;
+    static float total = 0;
 
     registry.forEach<Particle>([&](Entity e) {
       auto &p = e.get<Particle>();
 
-      Vector2 force = { 0, p.mass * 9.81f };
+      Vector2 force = { total == 0 ? 2000 : (p.velocity.x < 0.01 ? 0 : -8.f), p.mass * 9.81f };
       Vector2 acceleration = { force.x / p.mass, force.y / p.mass };
 
       p.velocity.x = p.velocity.x + acceleration.x * step;
@@ -166,13 +167,15 @@ class ParticleSystem : public System {
       e.get<component::Value<::Rectangle>>().value.x = p.position.x;
       e.get<component::Value<::Rectangle>>().value.y = p.position.y;
     });
+
+    total += step;
   }
 };
 
 int main() {
   Application app;
 
-  auto e1 = app.generateEntity().set<Particle>(Vector2 { 0.f, 0.f}).set<component::Texture>("wabbit_alpha.png").set<component::Value<::Rectangle>>(::Rectangle { -200, -200, 32, 32 });
+  auto e1 = app.generateEntity().set<Particle>(Vector2 { -300.f, -300.f}).set<component::Texture>("wabbit_alpha.png").set<component::Value<::Rectangle>>(::Rectangle { -200, -200, 32, 32 });
   // auto e2 = app.generateEntity().set<Particle>(Vector2 { 0.f, 0.f}).set<component::Texture>("wabbit_alpha.png").set<component::Value<::Rectangle>>(::Rectangle { -200, -200, 32, 32 });
 
   app.getSystemManager().set<ParticleSystem>();

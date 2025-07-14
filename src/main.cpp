@@ -1,5 +1,4 @@
 #include "engine/macro.h"
-#include "raylib.h"
 
 using namespace macro;
 
@@ -83,11 +82,11 @@ class CollisionSystem : public System {
           const auto collidingRight = rectangle.x < otherRectangle.x + otherRectangle.width && rectangle.x > otherRectangle.x;
 
           if (collidingRight || collidingLeft) {
-            if (otherCollider.movable) {
-                otherRectangle.x += xDelta;
-            } else {
+            // if (otherCollider.movable) {
+            //     otherRectangle.x += xDelta;
+            // } else {
               newRectangle.x = otherRectangle.x + (collidingRight ? 1 : -1) * otherRectangle.width;
-            }
+            // }
           }
         }
 
@@ -101,15 +100,15 @@ class CollisionSystem : public System {
           auto collidingDown = rectangle.y < otherRectangle.y + otherRectangle.height && rectangle.y > otherRectangle.y;
 
           if (collidingUp || collidingDown) {
-            if (otherCollider.movable) {
-              otherRectangle.y += yDelta;
-            } else {
+            // if (otherCollider.movable) {
+            //   otherRectangle.y += yDelta;
+            // } else {
             newRectangle.y = otherRectangle.y + (collidingDown ? 1 : -1) * otherRectangle.height;
-            }
+            // }
           }
         }
 
-        previousPosition = { rectangle.x, rectangle.y };
+        // previousPosition = { rectangle.x, rectangle.y };
         rectangle = newRectangle;
       });
 
@@ -117,6 +116,15 @@ class CollisionSystem : public System {
         DrawRectangleLinesEx(rectangle, 1, GREEN);
       }
     }
+};
+
+struct Particle : public Component {
+  float mass = 1;
+  Vector2 position;
+  Vector2 velocity;
+  Vector2 appliedForce;
+
+  inline Particle(Vector2 p) : position { p }, velocity { 0.f, 0.f }, appliedForce { 0.f, 0.f } {}
 };
 
 struct Map {
@@ -129,20 +137,13 @@ struct Map {
     for (auto &&l: lines()) {
       int x = 0;
       for (auto &&c: l) {
-        app.generateEntity().set<component::Value<::Rectangle>>(::Rectangle { (float)x * 32, (float)y * 32, 32, 32, }).set<component::Texture>("wabbit_alpha.png").set<ColliderComponent>(true);
+        app.generateEntity().set<component::Value<::Rectangle>>(::Rectangle { (float)x * 32, (float)y * 32, 32, 32, }).set<component::Texture>("wabbit_alpha.png").set<ColliderComponent>(true).set<Particle>(Vector2 {(float)x * 32, (float)y * 32});
+
         x++;
       }
       y++;
     }
   }
-};
-
-struct Particle : public Component {
-  float mass = 1;
-  Vector2 position;
-  Vector2 velocity;
-
-  inline Particle(Vector2 p) : position { p }, velocity { 0.f, 0.f } {}
 };
 
 class ParticleSystem : public System {
@@ -154,8 +155,9 @@ class ParticleSystem : public System {
 
     registry.forEach<Particle>([&](Entity e) {
       auto &p = e.get<Particle>();
+      auto &force = p.appliedForce;
 
-      Vector2 force = { total == 0 ? 2000 : (p.velocity.x < 0.01 ? 0 : -8.f), p.mass * 9.81f };
+      // Vector2 force = { total == 0 ? 2000 : (p.velocity.x < 0.01 ? 0 : -8.f), p.mass * 9.81f };
       Vector2 acceleration = { force.x / p.mass, force.y / p.mass };
 
       p.velocity.x = p.velocity.x + acceleration.x * step;
@@ -175,30 +177,27 @@ class ParticleSystem : public System {
 int main() {
   Application app;
 
-  auto e1 = app.generateEntity().set<Particle>(Vector2 { -300.f, -300.f}).set<component::Texture>("wabbit_alpha.png").set<component::Value<::Rectangle>>(::Rectangle { -200, -200, 32, 32 });
-  // auto e2 = app.generateEntity().set<Particle>(Vector2 { 0.f, 0.f}).set<component::Texture>("wabbit_alpha.png").set<component::Value<::Rectangle>>(::Rectangle { -200, -200, 32, 32 });
-
   app.getSystemManager().set<ParticleSystem>();
 
-  // auto player = app.generateEntity();
-  // player
-  //   //TODO: override this to improve constructor
-  //   // this is used to get the entity's position to draw (maybe should be its own dedicated stuff, PositionComponent + DimensionsComponent for example)
-  //   .set<component::Value<::Rectangle>>(::Rectangle { 200, 200, 32, 32 })
-  //   .set<component::Texture>("wabbit_alpha.png")
-  //   .set<MovableComponent>()
-  //   .set<ColliderComponent>(false);
-  //
-  // auto npc = app.generateEntity();
-  // npc
-  //   .set<component::Value<::Rectangle>>(::Rectangle { -100, 30, 32, 32 })
-  //   .set<component::Texture>("wabbit_alpha.png")
-  //   .set<ColliderComponent>(true);
-  //
-  // app.getSystemManager().set<MoveSystem>();
-  // app.getSystemManager().set<CollisionSystem>();
-  //
-  // Map::generate(app);
+  auto player = app.generateEntity();
+  player
+    //TODO: override this to improve constructor
+    // this is used to get the entity's position to draw (maybe should be its own dedicated stuff, PositionComponent + DimensionsComponent for example)
+    .set<component::Value<::Rectangle>>(::Rectangle { 200, 200, 32, 32 })
+    .set<component::Texture>("wabbit_alpha.png")
+    .set<MovableComponent>()
+    .set<ColliderComponent>(false);
+
+  auto npc = app.generateEntity();
+  npc
+    .set<component::Value<::Rectangle>>(::Rectangle { -100, 30, 32, 32 })
+    .set<component::Texture>("wabbit_alpha.png")
+    .set<ColliderComponent>(true);
+
+  app.getSystemManager().set<MoveSystem>();
+  app.getSystemManager().set<CollisionSystem>();
+
+  Map::generate(app);
 
   app.run();
 

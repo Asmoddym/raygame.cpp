@@ -19,7 +19,7 @@ class MoveSystem : public System {
 
   public:
     inline virtual void update() override {
-      registry.forEach<MovableComponent>(registry.bind(this, &MoveSystem::move));
+      registry.forEach<ColliderComponent>(registry.bind(this, &MoveSystem::move));
     }
 
     inline void move(Entity entity) {
@@ -29,11 +29,22 @@ class MoveSystem : public System {
       previousPosition.x = rect.x;
       previousPosition.y = rect.y;
 
-      if (IsKeyDown(KEY_LEFT)) { rect.x -= 3; }
-      if (IsKeyDown(KEY_RIGHT)) { rect.x += 3; }
-      if (IsKeyDown(KEY_UP)) { rect.y -= 3; }
-      if (IsKeyDown(KEY_DOWN)) { rect.y += 3; }
+      if (entity.has<MovableComponent>()) {
+        if (IsKeyDown(KEY_LEFT)) { rect.x -= 3; }
+        if (IsKeyDown(KEY_RIGHT)) { rect.x += 3; }
+        if (IsKeyDown(KEY_UP)) { rect.y -= 3; }
+        if (IsKeyDown(KEY_DOWN)) { rect.y += 3; }
+      }
     }
+};
+
+struct Particle : public Component {
+  float mass = 1;
+  Vector2 position;
+  Vector2 velocity;
+  Vector2 appliedForce;
+
+  inline Particle(Vector2 p) : position { p }, velocity { 0.f, 0.f }, appliedForce { 0.f, 0.f } {}
 };
 
 class CollisionSystem : public System {
@@ -54,8 +65,8 @@ class CollisionSystem : public System {
       auto &rectangle = entity.get<component::Value<::Rectangle>>().value;
       auto &previousPosition = entity.get<ColliderComponent>().previousPosition;
 
-      int xDelta = rectangle.x - previousPosition.x;
-      int yDelta = rectangle.y - previousPosition.y;
+      float xDelta = rectangle.x - previousPosition.x;
+      float yDelta = rectangle.y - previousPosition.y;
 
       // TODO: collidable components should have their own position and dimensions instead of using Rectangle
       registry.forEach<component::Value<::Rectangle>, ColliderComponent>([&](Entity otherEntity) {
@@ -108,7 +119,6 @@ class CollisionSystem : public System {
           }
         }
 
-        // previousPosition = { rectangle.x, rectangle.y };
         rectangle = newRectangle;
       });
 
@@ -116,15 +126,6 @@ class CollisionSystem : public System {
         DrawRectangleLinesEx(rectangle, 1, GREEN);
       }
     }
-};
-
-struct Particle : public Component {
-  float mass = 1;
-  Vector2 position;
-  Vector2 velocity;
-  Vector2 appliedForce;
-
-  inline Particle(Vector2 p) : position { p }, velocity { 0.f, 0.f }, appliedForce { 0.f, 0.f } {}
 };
 
 struct Map {
@@ -137,7 +138,17 @@ struct Map {
     for (auto &&l: lines()) {
       int x = 0;
       for (auto &&c: l) {
-        app.generateEntity().set<component::Value<::Rectangle>>(::Rectangle { (float)x * 32, (float)y * 32, 32, 32, }).set<component::Texture>("wabbit_alpha.png").set<ColliderComponent>(true).set<Particle>(Vector2 {(float)x * 32, (float)y * 32});
+        auto &e = app.generateEntity().set<component::Value<::Rectangle>>(::Rectangle { (float)x * 32, (float)y * 32, 32, 32, }).set<component::Texture>("wabbit_alpha.png").set<ColliderComponent>(true).set<Particle>(Vector2 {(float)x * 32, (float)y * 32});
+        e.get<Particle>().appliedForce.x = rand() % 100;
+        e.get<Particle>().appliedForce.y = rand() % 100;
+
+        if (rand() % 2 == 0) {
+          e.get<Particle>().appliedForce.x *= -1;
+        }
+
+        if (rand() % 2 == 0) {
+          e.get<Particle>().appliedForce.y *= -1;
+        }
 
         x++;
       }
@@ -151,13 +162,11 @@ class ParticleSystem : public System {
 
   inline void update() override {
     static float step = 0.05;
-    static float total = 0;
 
     registry.forEach<Particle>([&](Entity e) {
       auto &p = e.get<Particle>();
       auto &force = p.appliedForce;
 
-      // Vector2 force = { total == 0 ? 2000 : (p.velocity.x < 0.01 ? 0 : -8.f), p.mass * 9.81f };
       Vector2 acceleration = { force.x / p.mass, force.y / p.mass };
 
       p.velocity.x = p.velocity.x + acceleration.x * step;
@@ -168,16 +177,15 @@ class ParticleSystem : public System {
 
       e.get<component::Value<::Rectangle>>().value.x = p.position.x;
       e.get<component::Value<::Rectangle>>().value.y = p.position.y;
-    });
 
-    total += step;
+      force.x = 0;
+      force.y = 0;
+    });
   }
 };
 
 int main() {
   Application app;
-
-  app.getSystemManager().set<ParticleSystem>();
 
   auto player = app.generateEntity();
   player
@@ -195,6 +203,7 @@ int main() {
     .set<ColliderComponent>(true);
 
   app.getSystemManager().set<MoveSystem>();
+  app.getSystemManager().set<ParticleSystem>();
   app.getSystemManager().set<CollisionSystem>();
 
   Map::generate(app);

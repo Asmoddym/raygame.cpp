@@ -44,7 +44,7 @@ struct Particle : public Component {
   Vector2 velocity;
   Vector2 appliedForce;
 
-  inline Particle(Vector2 p) : position { p }, velocity { 0.f, 0.f }, appliedForce { 0.f, 0.f } {}
+  inline Particle(Vector2 p, Vector2 v = { 0.f, 0.f }) : position { p }, velocity { v}, appliedForce { 0.f, 0.f } {}
 };
 
 class CollisionSystem : public System {
@@ -77,9 +77,10 @@ class CollisionSystem : public System {
         auto newRectangle = rectangle;
         auto &otherCollider = otherEntity.get<ColliderComponent>();
 
-        if (m_showBounds) {
-          auto collision = GetCollisionRec(otherRectangle, rectangle);
+        auto collision = GetCollisionRec(rectangle, otherRectangle);
+        // if (entity.id == 0 && (xDelta != 0 || yDelta != 0)) DebugLog(xDelta, ", ", yDelta, ", ", collision.x, ", ", collision.y, ", ", collision.width, ", ", collision.height);
 
+        if (m_showBounds) {
           DrawRectangleLinesEx(otherRectangle, 1, BLUE);
           DrawRectangleLinesEx(collision, 1, YELLOW);
         }
@@ -95,8 +96,10 @@ class CollisionSystem : public System {
           if (collidingRight || collidingLeft) {
             // if (otherCollider.movable) {
             //     otherRectangle.x += xDelta;
+            //
             // } else {
               newRectangle.x = otherRectangle.x + (collidingRight ? 1 : -1) * otherRectangle.width;
+              DrawRectangleLinesEx(otherRectangle, 1, RED);
             // }
           }
         }
@@ -115,10 +118,12 @@ class CollisionSystem : public System {
             //   otherRectangle.y += yDelta;
             // } else {
             newRectangle.y = otherRectangle.y + (collidingDown ? 1 : -1) * otherRectangle.height;
+              DrawRectangleLinesEx(otherRectangle, 1, RED);
             // }
           }
         }
 
+        // previousPosition = { newRectangle.x, newRectangle.y };
         rectangle = newRectangle;
       });
 
@@ -134,20 +139,20 @@ struct Map {
   }
 
   static void generate(Application &app) {
-    int y = 0;
+    int y = 10;
     for (auto &&l: lines()) {
-      int x = 0;
+      int x = 10;
       for (auto &&c: l) {
-        auto &e = app.generateEntity().set<component::Value<::Rectangle>>(::Rectangle { (float)x * 32, (float)y * 32, 32, 32, }).set<component::Texture>("wabbit_alpha.png").set<ColliderComponent>(true).set<Particle>(Vector2 {(float)x * 32, (float)y * 32});
-        e.get<Particle>().appliedForce.x = rand() % 100;
-        e.get<Particle>().appliedForce.y = rand() % 100;
+        auto &e = app.generateEntity().set<component::Value<::Rectangle>>(::Rectangle { (float)x * 32, (float)y * 32, 32, 32, }).set<component::Texture>("wabbit_alpha.png").set<ColliderComponent>(false).set<Particle>(Vector2 {(float)x * 32, (float)y * 32});
+        e.get<Particle>().velocity.x = rand() % 3;
+        e.get<Particle>().velocity.y = rand() % 3;
 
         if (rand() % 2 == 0) {
-          e.get<Particle>().appliedForce.x *= -1;
+          e.get<Particle>().velocity.x *= -1;
         }
 
         if (rand() % 2 == 0) {
-          e.get<Particle>().appliedForce.y *= -1;
+          e.get<Particle>().velocity.y *= -1;
         }
 
         x++;
@@ -161,10 +166,11 @@ class ParticleSystem : public System {
   DefineSystem(ParticleSystem);
 
   inline void update() override {
-    static float step = 0.05;
+    static float step = 0.1;
 
     registry.forEach<Particle>([&](Entity e) {
       auto &p = e.get<Particle>();
+      auto &previousPosition = e.get<ColliderComponent>().previousPosition;
       auto &force = p.appliedForce;
 
       Vector2 acceleration = { force.x / p.mass, force.y / p.mass };
@@ -172,8 +178,8 @@ class ParticleSystem : public System {
       p.velocity.x = p.velocity.x + acceleration.x * step;
       p.velocity.y = p.velocity.y + acceleration.y * step;
 
-      p.position.x = p.position.x + p.velocity.x * step;
-      p.position.y = p.position.y + p.velocity.y * step;
+      p.position.x = previousPosition.x + p.velocity.x * step;
+      p.position.y = previousPosition.y + p.velocity.y * step;
 
       e.get<component::Value<::Rectangle>>().value.x = p.position.x;
       e.get<component::Value<::Rectangle>>().value.y = p.position.y;
@@ -194,13 +200,13 @@ int main() {
     .set<component::Value<::Rectangle>>(::Rectangle { 200, 200, 32, 32 })
     .set<component::Texture>("wabbit_alpha.png")
     .set<MovableComponent>()
-    .set<ColliderComponent>(false);
-
-  auto npc = app.generateEntity();
-  npc
-    .set<component::Value<::Rectangle>>(::Rectangle { -100, 30, 32, 32 })
-    .set<component::Texture>("wabbit_alpha.png")
     .set<ColliderComponent>(true);
+
+  // auto npc = app.generateEntity();
+  // npc
+  //   .set<component::Value<::Rectangle>>(::Rectangle { -100, 30, 32, 32 })
+  //   .set<component::Texture>("wabbit_alpha.png")
+  //   .set<ColliderComponent>(true);
 
   app.getSystemManager().set<MoveSystem>();
   app.getSystemManager().set<ParticleSystem>();

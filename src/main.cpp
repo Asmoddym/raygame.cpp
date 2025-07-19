@@ -84,6 +84,7 @@ class CollisionSystem : public System {
       Vector2 rectangleCenter = { rectangle.x + rectangleHalfExtents.x, rectangle.y + rectangleHalfExtents.y };
 
       // if (!entity.get<ColliderComponent>().movable) return ;
+      // https://learnopengl.com/In-Practice/2D-Game/Collisions/Collision-resolution
       
       bool collisionExisting = true;
       int iterations = 3;

@@ -49,6 +49,10 @@ namespace macro {
           return *this;
         }
 
+      inline Entity getEntity(int entity_id) {
+        return Entity { *this, entity_id };
+      }
+
       template<typename C>
         inline C &get(int entity_id) {
           auto &components = m_entities[entity_id];
@@ -97,6 +101,8 @@ namespace macro {
         inline std::function<void(Entity)> bind(T *ptr, U const &&fn) {
           return std::bind(fn, ptr, std::placeholders::_1);
         }
+
+      inline std::unordered_map<int, std::vector<Component *>> const &getEntities() const { return m_entities; }
 
     private:
       template<typename... Cs>

@@ -1,7 +1,5 @@
 #include "engine/macro.h"
-#include "raylib.h"
 #include <algorithm>
-#include <cmath>
 
 using namespace macro;
 
@@ -65,6 +63,12 @@ Vector2 compass[] = {
   { -1, 0 }, // left
 };
 
+struct CollisionPoint {
+  int id;
+  float v;
+  int type;
+};
+
 class CollisionSystem : public System {
   DefineSystem(CollisionSystem);
 
@@ -76,62 +80,109 @@ class CollisionSystem : public System {
         m_showBounds = !m_showBounds;
       }
 
-      registry.forEach<component::Value<::Rectangle>, ColliderComponent>(registry.bind(this, &CollisionSystem::process));
-    }
+      std::vector<CollisionPoint> xPoints;
+      std::vector<int> xActiveIntervals;
 
-    inline void process(Entity entity) {
-      auto &rectangle = entity.get<component::Value<::Rectangle>>().value;
+      registry.forEach<component::Value<::Rectangle>, ColliderComponent>([&](Entity e) {
+        auto &rect = e.get<component::Value<::Rectangle>>();
 
-      // if (!entity.get<ColliderComponent>().movable) return ;
-      // https://learnopengl.com/In-Practice/2D-Game/Collisions/Collision-resolution
-      
-      registry.forEach<component::Value<::Rectangle>, ColliderComponent>([&](Entity otherEntity) {
-          // We don't want to check entity's properties against itself
-          if (otherEntity.id == entity.id) { return; }
+        xPoints.emplace_back(CollisionPoint { e.id, rect.value.x, 0 });
+        xPoints.emplace_back(CollisionPoint { e.id, rect.value.x + rect.value.width, 1 });
+      });
 
-          auto &otherRectangle = otherEntity.get<component::Value<::Rectangle>>().value;
+      std::sort(xPoints.begin(), xPoints.end(), [&](CollisionPoint &a, CollisionPoint &b) { return a.v < b.v; });
 
-          if (CheckCollisionRecs(rectangle, otherRectangle)) {
-          Vector2 rectangleHalfExtents = { rectangle.width / 2, rectangle.height / 2 };
-          Vector2 rectangleCenter = { rectangle.x + rectangleHalfExtents.x, rectangle.y + rectangleHalfExtents.y };
-          auto &otherCollider = otherEntity.get<ColliderComponent>();
-          Vector2 otherRectangleHalfExtents = { otherRectangle.width / 2, otherRectangle.height / 2 };
-          Vector2 otherRectangleCenter = { otherRectangle.x + otherRectangleHalfExtents.x, otherRectangle.y + otherRectangleHalfExtents.y };
-          Vector2 diff = { rectangleCenter.x - otherRectangleCenter.x, rectangleCenter.y - otherRectangleCenter.y };
+      // Sort & sweep implementation from https://leanrada.com/notes/sweep-and-prune/
 
-          Vector2 normalized = normalize(diff);
+      for (auto &&x: xPoints) {
+        if (x.type == 0) {
+          Entity entity = registry.getEntity(x.id);
+          auto &rect = entity.get<component::Value<::Rectangle>>().value;
 
-          float max = 0.0f;
-          unsigned int best_match = -1;
-          for (unsigned int i = 0; i < 4; i++)
-          {
-            float dot_product = normalized.x * compass[i].x + normalized.y * compass[i].y;
-            if (dot_product > max)
-            {
-              max = dot_product;
-              best_match = i;
+          for (auto &&other: xActiveIntervals) {
+            Entity otherEntity = registry.getEntity(other);
+            auto &otherRect = otherEntity.get<component::Value<::Rectangle>>().value;
+
+            if (CheckCollisionRecs(rect, otherRect)) {
+              resolveCollision(entity, otherEntity);
             }
           }
 
-          if (best_match == LEFT || best_match == RIGHT) {
-            float velocity = entity.has<Particle>() ? entity.get<Particle>().velocity.x : 3;
-            rectangle.x += velocity * (best_match == LEFT ? -1 : 1);
-          }
+          xActiveIntervals.emplace_back(x.id);
+        } else {
+          xActiveIntervals.erase(std::remove_if(xActiveIntervals.begin(), xActiveIntervals.end(), [&](int id) { return id == x.id; }));
+        }
+      }
+    }
 
-          if (best_match == UP || best_match == DOWN) {
-            float velocity = entity.has<Particle>() ? entity.get<Particle>().velocity.y : 3;
-            rectangle.y += velocity * (best_match == DOWN ? -1 : 1);
-          }
-          }
-      });
+    inline void resolveCollision(Entity &entity, Entity &otherEntity) {
+      if (otherEntity.id == entity.id) { return; }
 
-      if (m_showBounds) DrawRectangleLinesEx(rectangle, 1, YELLOW);
-      };
-    };
+      auto &rectangle = entity.get<component::Value<::Rectangle>>().value;
+      auto &collider = entity.get<ColliderComponent>();
+      Vector2 rectangleHalfExtents = { rectangle.width / 2, rectangle.height / 2 };
+      Vector2 rectangleCenter = { rectangle.x + rectangleHalfExtents.x, rectangle.y + rectangleHalfExtents.y };
+
+      auto &otherRectangle = otherEntity.get<component::Value<::Rectangle>>().value;
+      auto &otherCollider = otherEntity.get<ColliderComponent>();
+      Vector2 otherRectangleHalfExtents = { otherRectangle.width / 2, otherRectangle.height / 2 };
+      Vector2 otherRectangleCenter = { otherRectangle.x + otherRectangleHalfExtents.x, otherRectangle.y + otherRectangleHalfExtents.y };
+
+      Vector2 diff = { rectangleCenter.x - otherRectangleCenter.x, rectangleCenter.y - otherRectangleCenter.y };
+      Vector2 normalized = normalize(diff);
+      auto collisionRec = GetCollisionRec(rectangle, otherRectangle);
+
+      // TODO: I should be able to remove left and/or right as I know there will be a X collision, and it should always be on the left (I think?)
+      float max = 0.0f;
+      unsigned int best_match = -1;
+      for (unsigned int i = 0; i < 4; i++)
+      {
+        float dot_product = normalized.x * compass[i].x + normalized.y * compass[i].y;
+        if (dot_product > max)
+        {
+          max = dot_product;
+          best_match = i;
+        }
+      }
+
+      if (best_match == LEFT || best_match == RIGHT) {
+        float midDiff = collisionRec.width / 2;
+
+        // As the algorithm begins with X coord, we know rectangle will always be the entity at the right.
+        if (collider.movable) {
+          rectangle.x += midDiff;
+        }
+        if (otherCollider.movable) {
+          otherRectangle.x -= midDiff;
+        }
+      } else {
+        float midDiff = collisionRec.height / 2;
+
+        // Here, we need to check in which direction the collision occurred
+        midDiff *= best_match == UP ? 1 : -1;
+
+        if (collider.movable) {
+          rectangle.y += midDiff;
+        }
+        if (otherCollider.movable) {
+          otherRectangle.y -= midDiff;
+        }
+      }
+
+      if (m_showBounds) {
+        DrawRectangleLinesEx(rectangle, 1, collider.movable ? GREEN : BLUE);
+        DrawRectangleLinesEx(otherRectangle, 1, otherCollider.movable ? YELLOW : BLUE);
+        DrawRectangleRec(collisionRec, RED);
+      }
+    }
+};
 
 struct Map {
   static std::vector<std::string> const lines() {
-    return { "000000000", "0000", "0000000" };
+    return { "00000000000000000000000000000000000", "0000", "0000000", "000000000000000000000", "°1209234°02943°0493", "éràç_ékjfh slkfgjhqs lfgksjh lkjh ", "mcvioqsdjhf lsqkjfgh sdlfkjsdh flsdkhjf sdlfkjsdh flsdkhjf sdlfkjehfglaziuhfg zlkjh ",
+    "00000000000000000000000000000000000", "0000", "0000000", "000000000000000000000", "°1209234°02943°0493", "éràç_ékjfh slkfgjhqs lfgksjh lkjh ", "mcvioqsdjhf lsqkjfgh sdlfkjsdh flsdkhjf sdlfkjsdh flsdkhjf sdlfkjehfglaziuhfg zlkjh ",
+    };
+    // return { "0", "°", "a" };
   }
 
   static void generate(Application &app) {
@@ -139,11 +190,10 @@ struct Map {
     for (auto &&l: lines()) {
       int x = 10;
       for (auto &&c: l) {
-        auto &e = app.generateEntity().set<component::Value<::Rectangle>>(::Rectangle { (float)x * 32, (float)y * 32, 32, 32, }).set<component::Texture>("wabbit_alpha.png").set<ColliderComponent>(false).set<Particle>(Vector2 {(float)x * 32, (float)y * 32});
+        auto &e = app.generateEntity().set<component::Value<::Rectangle>>(::Rectangle { (float)x * 32, (float)y * 32, 32, 32, }).set<component::Texture>("wabbit_alpha.png").set<ColliderComponent>(true).set<Particle>(Vector2 {(float)x * 32, (float)y * 32});
 
-
-        float rx = (rand() % 100) / 100.f;
-        float ry = (rand() % 100) / 100.f;
+        float rx = (rand() % 200) / 100.f;
+        float ry = (rand() % 200) / 100.f;
 
         e.get<Particle>().velocity.x = rx;
         e.get<Particle>().velocity.y = ry;
@@ -167,6 +217,7 @@ class ParticleSystem : public System {
   DefineSystem(ParticleSystem);
 
   inline void update() override {
+    //TODO: Implement an actual timer
     static int tick = 0;
     tick++;
     if (tick % 2 == 0) return ;
@@ -212,6 +263,12 @@ int main() {
     .set<component::Value<::Rectangle>>(::Rectangle { 400, 30, 32, 32 })
     .set<component::Texture>("wabbit_alpha.png")
     .set<ColliderComponent>(true);
+
+  auto wall = app.generateEntity();
+  wall
+    .set<component::Value<::Rectangle>>(::Rectangle { 600, 30, 32, 32 })
+    .set<component::Texture>("wabbit_alpha.png")
+    .set<ColliderComponent>(false);
 
   app.getSystemManager().set<MoveSystem>();
   app.getSystemManager().set<ParticleSystem>();

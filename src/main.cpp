@@ -41,10 +41,10 @@ namespace rg {
         auto &rect = entity.get<macro::component::Rectangle>().value;
 
         if (entity.has<component::Controllable>()) {
-          if (IsKeyDown(KEY_LEFT)) { rect.x -= 3; }
-          if (IsKeyDown(KEY_RIGHT)) { rect.x += 3; }
-          if (IsKeyDown(KEY_UP)) { rect.y -= 3; }
-          if (IsKeyDown(KEY_DOWN)) { rect.y += 3; }
+          if (IsKeyDown(KEY_LEFT)) { rect.x -= 5; }
+          if (IsKeyDown(KEY_RIGHT)) { rect.x += 5; }
+          if (IsKeyDown(KEY_UP)) { rect.y -= 5; }
+          if (IsKeyDown(KEY_DOWN)) { rect.y += 5; }
         }
       }
     };
@@ -199,9 +199,9 @@ struct Map {
   }
 
   static void generate(macro::Application &app) {
-    int y = 10;
+    int y = 3;
     for (auto &&l: lines()) {
-      int x = 10;
+      int x = 3;
       for (auto &&c: l) {
         auto &e = app.generateEntity()
           .set<macro::component::Rectangle>((float)x * 32, (float)y * 32, 32, 32)
@@ -211,8 +211,8 @@ struct Map {
 
         auto &velocity = e.get<rg::component::Velocity>().value;
 
-        float rx = (rand() % 100) / 100.f;
-        float ry = (rand() % 100) / 100.f;
+        float rx = (rand() % 200) / 100.f;
+        float ry = (rand() % 200) / 100.f;
 
         velocity.x = rx;
         velocity.y = ry;

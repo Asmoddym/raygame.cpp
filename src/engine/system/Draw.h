@@ -6,7 +6,7 @@
 namespace macro {
   namespace system {
     class Draw : public System {
-      DefineSystem(Draw);
+      DefineSystem(Draw, UPDATE_EACH_FRAME);
 
       virtual void update() override;
     };

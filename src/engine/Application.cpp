@@ -33,7 +33,6 @@ void macro::Application::run() {
   while (!WindowShouldClose()) {
     BeginDrawing();
     BeginMode2D(m_camera);
-
     Timer::reset();
 
     ClearBackground(BLACK);

@@ -8,6 +8,7 @@
 // Components
 
 # include "component/Texture.h"
+# include "component/Rectangle.h"
 # include "component/Value.h"
 
 #endif // MACRO_MACRO_H_

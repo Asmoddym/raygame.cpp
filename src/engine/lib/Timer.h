@@ -7,7 +7,6 @@ class Timer {
   public:
     static inline double since() {
       double elapsed = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - Timer::m_t).count();
-      reset();
 
       return elapsed / 1000000;
     }

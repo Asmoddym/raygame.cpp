@@ -11,4 +11,8 @@
 # include "component/Rectangle.h"
 # include "component/Value.h"
 
+// Systems
+
+# include "system/Draw.h"
+
 #endif // MACRO_MACRO_H_

@@ -68,6 +68,7 @@ int main() {
     .set<macro::component::Texture>("wabbit_alpha.png")
     .set<rg::component::Movable>(false);
 
+  app.getSystemManager().set<macro::system::Draw>();
   app.getSystemManager().set<rg::system::Move>();
   app.getSystemManager().set<rg::system::Collision>();
 

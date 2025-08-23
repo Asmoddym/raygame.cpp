@@ -6,8 +6,6 @@
 #include "lib/Timer.h"
 #include "lib/Concatenate.h"
 
-#include "system/Draw.h"
-
 macro::Application::Application() {
   DebugLog("Constructing Application");
 
@@ -23,8 +21,6 @@ macro::Application::Application() {
   m_camera.offset = ::Vector2 { 0, 0 };
   m_camera.rotation = 0.0f;
   m_camera.zoom = 1.0f;
-
-  m_systemManager.set<system::Draw>();
 }
 
 void macro::Application::run() {

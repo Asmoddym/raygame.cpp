@@ -14,16 +14,19 @@ namespace rg {
           m_camera.zoom = 1.0f;
         };
 
-      inline virtual void update() override {
-        BeginDrawing();
+        inline virtual void update() override {
+          BeginDrawing();
+          ClearBackground(BLACK);
+          BeginMode2D(m_camera);
+          draw();
+          EndMode2D();
+          DrawText(Concatenate(GetFPS(), " FPS (", Timer::since(), "ms)").c_str(), 10, 10, 20, LIME);
+          EndDrawing();
+        }
 
-        ClearBackground(BLACK);
-
-    BeginMode2D(m_camera);
-    EndMode2D();
-    DrawText(Concatenate(GetFPS(), " FPS (", Timer::since(), "ms)").c_str(), 10, 10, 20, LIME);
-    EndDrawing();
-      }
+      private:
+        inline void draw() {
+        }
     };
   }
 }

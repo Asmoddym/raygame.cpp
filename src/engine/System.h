@@ -5,9 +5,7 @@
 # include "raylib.h"
 
 # define UPDATE_EACH_FRAME -1
-# define DefineSystem(Name, UpdateSpan) public: \
-  inline Name(::macro::Registry &r, double u = -1) : System { r, UpdateSpan } {} \
-  private:
+# define DefineSystem(Name, UpdateSpan) inline Name(::macro::Registry &r, double u = -1) : System { r, UpdateSpan }
 
 namespace macro {
   class System {

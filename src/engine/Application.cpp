@@ -15,28 +15,16 @@ macro::Application::Application() {
   SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
   InitWindow((int)size.x, (int)size.y, "raylib [core] example - 2d camera");
   SearchAndSetResourceDir("resources");
-  SetTargetFPS(144);
-
-  // m_camera.offset = ::Vector2 { size.x / 2.f, size.y / 2.f };
-  m_camera.offset = ::Vector2 { 0, 0 };
-  m_camera.rotation = 0.0f;
-  m_camera.zoom = 1.0f;
+  SetTargetFPS(60);
 }
 
 void macro::Application::run() {
   Log::d("Running!");
 
   while (!WindowShouldClose()) {
-    BeginDrawing();
-    BeginMode2D(m_camera);
     Timer::reset();
 
-    ClearBackground(BLACK);
     m_systemManager.update();
-
-    EndMode2D();
-    DrawText(Concatenate(GetFPS(), " FPS (", Timer::since(), "ms)").c_str(), 10, 10, 20, LIME);
-    EndDrawing();
   }
 
   CloseWindow();

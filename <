@@ -217,8 +217,8 @@ namespace rg {
             if(drawEnd >=screenHeight)drawEnd =screenHeight - 1;
 
             if (l == 1) {
-              drawStart -= lineHeight;
-              drawEnd -= lineHeight;
+              drawStart -= lineHeight - 1;
+              drawEnd -= lineHeight - 1;
             }
 
 

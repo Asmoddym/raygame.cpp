@@ -102,7 +102,7 @@ namespace rg {
 
       public:
         DefineSystem(Raycast, 16) {
-          // m_camera.offset = ::Vector2 { size.x / 2.f, size.y / 2.f };
+          m_camera.offset = ::Vector2 { screenWidth/ 2.f, screenHeight/ 2.f };
           m_camera.offset = ::Vector2 { 0, 0 };
           m_camera.rotation = 0.0f;
           m_camera.zoom = 1.0f;

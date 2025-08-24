@@ -316,7 +316,7 @@ fb_texture = LoadTextureFromImage(fb_image);
             for (auto &&hit: hits) {
               hitIdx++;
               //Calculate height of line to draw on screen
-              int lineHeight = (int)(screenHeight / hit.dist);
+              int lineHeight = (int)(2 * screenHeight / hit.dist);
 
               //calculate lowest an highest pixel to fill in current stripe
               int drawStart = -lineHeight / 2 +screenHeight / 2;
@@ -394,7 +394,8 @@ fb_texture = LoadTextureFromImage(fb_image);
 
                 double distWall, distPlayer, currentDist;
 
-                distWall =hit.dist;
+                // This is relative to lineHeight
+                distWall =hit.dist / 2;
                 distPlayer = 0.0;
 
                 if (drawEnd < 0) drawEnd = screenHeight; //becomes < 0 when the integer overflows

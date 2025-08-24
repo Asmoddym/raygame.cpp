@@ -146,37 +146,82 @@ fb_texture = LoadTextureFromImage(fb_image);
         double dirX = -1, dirY = 0; //initial direction vector
         double planeX = 0, planeY = 0.5; //the 2d raycaster version of camera plane
                                          Color pixels[screenHeight * screenWidth];
- Image fb_image = {
-        .data = pixels,
-        .width = screenWidth,
-        .height = screenHeight,
-        .mipmaps = 1,
-        .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
+ Image fb_image = Image {
+        pixels,
+        screenWidth,
+        screenHeight,
+        1,
+        PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
     };
   std::vector<Texture> textures;
   std::vector<Color *> images;
 
       Texture2D fb_texture;
 
-
       private:
         inline void draw() {
+ //FLOOR CASTING
+          float posZ = 0.5 * screenHeight;
+    for(int y = screenHeight / 2; y < screenHeight; y++)
+    {
+      // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
+      float rayDirX0 = dirX - planeX;
+      float rayDirY0 = dirY - planeY;
+      float rayDirX1 = dirX + planeX;
+      float rayDirY1 = dirY + planeY;
+
+      // Current y position compared to the center of the screen (the horizon)
+      int p = y - screenHeight / 2;
+
+      // Vertical position of the camera.
+
+      // Horizontal distance from the camera to the floor for the current row.
+      // 0.5 is the z position exactly in the middle between floor and ceiling.
+      float rowDistance = posZ / p * 2;
+
+      // calculate the real world step vector we have to add for each x (parallel to camera plane)
+      // adding step by step avoids multiplications with a weight in the inner loop
+      float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / screenWidth;
+      float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / screenWidth;
+
+      // real world coordinates of the leftmost column. This will be updated as we step to the right.
+      float floorX = posX + rowDistance * rayDirX0;
+      float floorY = posY + rowDistance * rayDirY0;
+
+      for(int x = 0; x < screenWidth; ++x)
+      {
+        // the cell coord is simply got from the integer parts of floorX and floorY
+        int cellX = (int)(floorX);
+        int cellY = (int)(floorY);
+
+        // get the texture coordinate from the fractional part
+        int tx = (int)(texWidth * (floorX - cellX)) & (texWidth - 1);
+        int ty = (int)(texHeight * (floorY - cellY)) & (texHeight - 1);
+
+        floorX += floorStepX;
+        floorY += floorStepY;
+
+        // choose texture and draw the pixel
+        int floorTexture = 3;
+        int ceilingTexture = 6;
+        Color color;
+
+        // floor
+        color = images[floorTexture][texWidth * ty + tx];
+        color.a /= 3;
+        pixels[y * screenWidth + x] = color;
+
+        // //ceiling (symmetrical, at screenHeight - y - 1 instead of y)
+        // color = images[ceilingTexture][texWidth * ty + tx];
+        // color.a /= 2;
+        // pixels[(screenHeight - y - 1) * screenWidth + x] = color;
+      }
+    }
+
+
           drawLevel(2);
           drawLevel(1);
           drawLevel(0);
-
-
-
-
-
-
-
-
-
-
-
-
-
 
           float moveSpeed = 0.15;
           float rotSpeed = 0.03;
@@ -220,7 +265,7 @@ fb_texture = LoadTextureFromImage(fb_image);
         struct Hit { int side; double dist; int mapX; int mapY; };
 
         void drawLevel(int l) {
-          auto &level = l == 0 ? worldMap : l == 1 ? worldMapLevel2 : worldMapLevel3;
+         auto level = l == 0 ? worldMap : l == 1 ? worldMapLevel2 : worldMapLevel3;
 
           for(int x = 0; x < screenWidth; x++) {
             //calculate ray position and direction
@@ -322,8 +367,8 @@ fb_texture = LoadTextureFromImage(fb_image);
               int drawStart = -lineHeight / 2 +screenHeight / 2;
               int drawEnd = lineHeight / 2 +screenHeight / 2;
 
-              drawStart -= l * lineHeight;
-              drawEnd -= l * lineHeight;
+              // drawStart -= l * lineHeight;
+              // drawEnd -= l * lineHeight;
 
               if(drawStart < 0)drawStart = 0;
               if(drawEnd >=screenHeight)drawEnd =screenHeight - 1;
@@ -349,83 +394,32 @@ fb_texture = LoadTextureFromImage(fb_image);
               for (int y = drawStart; y < drawEnd; y++) {
                 int texY = (int)texPos & (texHeight - 1);
                 texPos += step;
+                
+                int fakeY = y - l * lineHeight;
+                if (fakeY < 0) fakeY = 0;
 
                 // DebugLog("> ", texY, ", ", texY, ", ", y, ", ", x);
                 // DebugLog(texY, ", ", texX, ", ", texNum, ", ", hit.mapX, ", ", hit.mapY);
-                pixels[y * screenWidth + x] = images[texNum][texY * texWidth + texX];
+                
+
+                // int a = 255 - hit.dist * 20 ;
+                // c.a = a < 0 ? 0 :a;
+
+
+
+                pixels[fakeY * screenWidth + x] = images[texNum][texY * texWidth + texX];
+                if (hit.side == 1) pixels[fakeY * screenWidth + x].a /= 2;
                 // DebugLog("OK");
                 // DebugLog("OK");
-              }
+             }
 
 
-              bool drawCeiling = false;
-              bool drawFloor = hitIdx == hits.size() - 1 && l == 0;
-
-              // Calculate ceiling
-              if (drawCeiling || drawFloor) {
-                // if (drawCeiling) drawStart -= (l + 1) * lineHeight;
-
-
-
-                //FLOOR CASTING (vertical version, directly after drawing the vertical wall stripe for the current x)
-                double floorXWall, floorYWall; //x, y position of the floor texel at the bottom of the wall
-
-                //4 different wall directions possible
-                if(hit.side == 0 && rayDirX > 0)
-                {
-                  floorXWall = hit.mapX;
-                  floorYWall = hit.mapY + wallX;
-                }
-                else if(hit.side == 0 && rayDirX < 0)
-                {
-                  floorXWall = hit.mapX + 1.0;
-                  floorYWall = hit.mapY + wallX;
-                }
-                else if(hit.side == 1 && rayDirY > 0)
-                {
-                  floorXWall = hit.mapX + wallX;
-                  floorYWall = hit.mapY;
-                }
-                else
-                {
-                  floorXWall = hit.mapX + wallX;
-                  floorYWall = hit.mapY + 1.0;
-                }
-
-                double distWall, distPlayer, currentDist;
-
-                // This is relative to lineHeight
-                distWall =hit.dist / 2;
-                distPlayer = 0.0;
-
-                if (drawEnd < 0) drawEnd = screenHeight; //becomes < 0 when the integer overflows
-
-                //draw the ceiling from drawEnd to the bottom of the screen
-                for(int y = drawEnd + 1; y < screenHeight; y++)
-                {
-                  currentDist = screenHeight / (2.0 * y - screenHeight); //you could make a small lookup table for this instead
-
-                  double weight = (currentDist - distPlayer) / (distWall - distPlayer);
-
-                  double currentFloorX = weight * floorXWall + (1.0 - weight) * posX;
-                  double currentFloorY = weight * floorYWall + (1.0 - weight) * posY;
-
-                  int floorTexX, floorTexY;
-                  floorTexX = int(currentFloorX * texWidth) % texWidth;
-                  floorTexY = int(currentFloorY * texHeight) % texHeight;
-
-                  //ceiling (symmetrical!)
-                  // - offset for levels
-                  if (drawCeiling) pixels[(screenHeight - y) * screenWidth + x] = images[6][texWidth * floorTexY + floorTexX];
-                  if (drawFloor) pixels[y * screenWidth + x] = images[3][texWidth * floorTexY + floorTexX];
-                }
-              }
-
-
-              // // Calculate floor
-              // if (hitIdx == hits.size() - 1 && l == 0) {
-              // texPos = (drawStart - screenHeight / 2 + lineHeight / 2) * step;
+              // bool drawCeiling = hitIdx == hits.size() - 1 && l == 2;
+              // bool drawFloor = hitIdx == hits.size() - 1 && l == 0;
               //
+              // // Calculate ceiling
+              // if (drawCeiling || drawFloor) {
+              //   // if (drawCeiling) drawStart -= (l + 1) * lineHeight;
               //
               //   //FLOOR CASTING (vertical version, directly after drawing the vertical wall stripe for the current x)
               //   double floorXWall, floorYWall; //x, y position of the floor texel at the bottom of the wall
@@ -454,26 +448,31 @@ fb_texture = LoadTextureFromImage(fb_image);
               //
               //   double distWall, distPlayer, currentDist;
               //
-              //   distWall =hit.dist;
+              //   // This seems to be relative to lineHeight
+              //   distWall =hit.dist / 2; // / ((l + 1) * 2);
               //   distPlayer = 0.0;
               //
               //   if (drawEnd < 0) drawEnd = screenHeight; //becomes < 0 when the integer overflows
               //
-              //   //draw the floor from drawEnd to the bottom of the screen
               //   for(int y = drawEnd + 1; y < screenHeight; y++)
               //   {
               //     currentDist = screenHeight / (2.0 * y - screenHeight); //you could make a small lookup table for this instead
               //
               //     double weight = (currentDist - distPlayer) / (distWall - distPlayer);
               //
-              //     double currentFloorX = weight * floorXWall + (2.0 - weight) * posX;
-              //     double currentFloorY = weight * floorYWall + (2.0 - weight) * posY;
+              //     double currentFloorX = weight * floorXWall + (1.0 - weight) * posX;
+              //     double currentFloorY = weight * floorYWall + (1.0 - weight) * posY;
               //
               //     int floorTexX, floorTexY;
               //     floorTexX = int(currentFloorX * texWidth) % texWidth;
               //     floorTexY = int(currentFloorY * texHeight) % texHeight;
               //
-              //     pixels[y * screenWidth + x] = images[3][texWidth * floorTexY + floorTexX];
+              //     if (drawCeiling) { //&& (y > (drawEnd + l * lineHeight))) {
+              //       int fakeY = y+ l * lineHeight;
+              //
+              //       if (fakeY < screenHeight) pixels[(screenHeight - fakeY) * screenWidth + x] = images[6][texWidth * floorTexY + floorTexX];
+              //     }
+              //     if (drawFloor) pixels[y * screenWidth + x] = images[3][texWidth * floorTexY + floorTexX];
               //   }
               // }
             }

@@ -77,14 +77,15 @@ namespace rg {
           m_camera.offset = ::Vector2 { 0, 0 };
           m_camera.rotation = 0.0f;
           m_camera.zoom = 1.0f;
-          texture.emplace_back(LoadImageColors(LoadImage("pics/barrel.png")));
-          texture.emplace_back(LoadImageColors(LoadImage("pics/barrel.png")));
-          texture.emplace_back(LoadImageColors(LoadImage("pics/barrel.png")));
-          texture.emplace_back(LoadImageColors(LoadImage("pics/barrel.png")));
-          texture.emplace_back(LoadImageColors(LoadImage("pics/barrel.png")));
-          texture.emplace_back(LoadImageColors(LoadImage("pics/barrel.png")));
-          texture.emplace_back(LoadImageColors(LoadImage("pics/barrel.png")));
-          texture.emplace_back(LoadImageColors(LoadImage("pics/barrel.png")));
+
+          textures.emplace_back(LoadTexture("pics/mossy.png"));
+          textures.emplace_back(LoadTexture("pics/colorstone.png"));
+          textures.emplace_back(LoadTexture("pics/purplestone.png"));
+          textures.emplace_back(LoadTexture("pics/wood.png"));
+          textures.emplace_back(LoadTexture("pics/redbrick.png"));
+          textures.emplace_back(LoadTexture("pics/bluestone.png"));
+          textures.emplace_back(LoadTexture("pics/greystone.png"));
+          textures.emplace_back(LoadTexture("pics/eagle.png"));
 
         };
 
@@ -103,11 +104,11 @@ namespace rg {
         double planeX = 0, planeY = 0.5; //the 2d raycaster version of camera plane
 
   int buffer[screenHeight][screenWidth]; // y-coordinate first because it works per scanline
-  std::vector<Color *> texture;
+  std::vector<Texture> textures;
 
       private:
         inline void draw() {
-          // drawLevel(1);
+          drawLevel(1);
           drawLevel(0);
           float moveSpeed = 0.15;
           float rotSpeed = 0.03;
@@ -230,7 +231,7 @@ namespace rg {
 
             //calculate lowest an highest pixel to fill in current stripe
             int drawStart = -lineHeight / 2 +screenHeight / 2;
-            if(drawStart < 0)drawStart = 0;
+            // if(drawStart < 0)drawStart = 0;
             int drawEnd = lineHeight / 2 +screenHeight / 2;
             if(drawEnd >=screenHeight)drawEnd =screenHeight - 1;
 
@@ -240,7 +241,7 @@ namespace rg {
             }
 
             //texturing calculations
-            int texNum = worldMap[mapX][mapY] - 1; //1 subtracted from it so that texture 0 can be used!
+            int texNum = level[mapX][mapY] - 1; //1 subtracted from it so that texture 0 can be used!
 
             //calculate value of wallX
             double wallX; //where exactly the wall was hit
@@ -253,56 +254,9 @@ namespace rg {
             if(side == 0 && rayDirX > 0) texX = texWidth - texX - 1;
             if(side == 1 && rayDirY < 0) texX = texWidth - texX - 1;
 
-
-
-            // How much to increase the texture coordinate per screen pixel
-            double step = 1.0 * texHeight / lineHeight;
-            // Starting texture coordinate
-            double texPos = (drawStart - screenHeight / 2 + lineHeight / 2) * step;
-            for(int y = drawStart; y<drawEnd; y++)
-            {
-              // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
-              int texY = (int)texPos & (texHeight - 1);
-              texPos += step;
-
-              Color color = texture[texNum][texHeight * texY + texX];
-              if (side == 1) color.a /= 2;
-
-              // int color = ((int *)texture[texNum].data)[texHeight * texY + texX];
-
-              //make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
-              // if(side == 1) color = (color >> 1) & 8355711;
-              // buffer[y][x] = color;
-            }
-            // for(int y = 0; y < screenHeight; y++) for(int x = 0; x < screenWidth; x++) buffer[y][x] = 0; //clear the buffer instead of cls()
+            DrawTexturePro(textures[texNum], Rectangle { (float)texX, 0, 1, 64 }, Rectangle { (float)x, (float)drawStart, 1, (float)lineHeight }, Vector2 { 0, 0, }, 0, side == 0 ? WHITE: Color { 255, 255, 255, 128});
           }
-
-
-
-
-
-            // //choose wall color
-            //
-            // Color color;
-            // switch (level[mapX][mapY]) {
-            //   case 1:
-            //     color = RED;
-            //     break;
-            //   case 2:
-            //     color = BLUE;
-            //     break;
-            //   case 3:
-            //     color = YELLOW;
-            //     break;
-            //   case 4:
-            //     color = GREEN;
-            //     break;
-            // }
-            //
-            // if (side == 0) color.a /= 2;
-            //
-            // DrawLine(x, drawStart, x, drawEnd, color); 
-          }
+        }
     };
   }
 }

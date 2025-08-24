@@ -1,6 +1,7 @@
 #include "Debug.h"
 #include "engine/macro.h"
 #include "raylib.h"
+
 #define mapWidth 24
 #define mapHeight 24
 #define screenWidth 1280
@@ -123,6 +124,15 @@ namespace rg {
          images.emplace_back(LoadImageColors(LoadImage("pics/bluestone.png")));
          images.emplace_back(LoadImageColors(LoadImage("pics/greystone.png")));
          images.emplace_back(LoadImageColors(LoadImage("pics/eagle.png")));
+         images.emplace_back(LoadImageColors(LoadImage("pics/eagle.png")));
+
+         for (auto y = 0; y < texHeight; y++) {
+           for (auto x = 0; x < texWidth; x++) {
+             images[images.size() - 1][y * texWidth + x].a  /= 3;
+           }
+         }
+
+
 fb_texture = LoadTextureFromImage(fb_image);
         };
 
@@ -130,16 +140,17 @@ fb_texture = LoadTextureFromImage(fb_image);
           BeginDrawing();
           ClearBackground(BLACK);
           BeginMode2D(m_camera);
-          draw();
 
+          drawFloor();
           UpdateTexture(fb_texture, pixels);
-          DrawTexture(fb_texture, 0, 0, WHITE);
+          DrawTexture(fb_texture, 0, screenHeight / 2, WHITE);
+          draw();
 
           EndMode2D();
           DrawText(Concatenate(GetFPS(), " FPS (", Timer::since(), "ms)").c_str(), 10, 10, 20, LIME);
           EndDrawing();
 
-          for (int y = 0; y < screenHeight; y++) { for (int x = 0; x < screenWidth; x++) { pixels[y * screenWidth + x] = BLACK; }}
+          // for (int y = 0; y < screenHeight; y++) { for (int x = 0; x < screenWidth; x++) { pixels[y * screenWidth + x] = BLACK; }}
 
         }
         double posX = 18, posY = 12;  //x and y start position
@@ -149,7 +160,7 @@ fb_texture = LoadTextureFromImage(fb_image);
  Image fb_image = Image {
         pixels,
         screenWidth,
-        screenHeight,
+        screenHeight / 2,
         1,
         PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
     };
@@ -159,10 +170,12 @@ fb_texture = LoadTextureFromImage(fb_image);
       Texture2D fb_texture;
 
       private:
-        inline void draw() {
+      void drawFloor() {
  //FLOOR CASTING
           float posZ = 0.5 * screenHeight;
-    for(int y = screenHeight / 2; y < screenHeight; y++)
+
+          int drawFloor = 1;
+    for(int y = screenHeight / 2; drawFloor && y < screenHeight; y++)
     {
       // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
       float rayDirX0 = dirX - planeX;
@@ -204,12 +217,7 @@ fb_texture = LoadTextureFromImage(fb_image);
         // choose texture and draw the pixel
         int floorTexture = 3;
         int ceilingTexture = 6;
-        Color color;
-
-        // floor
-        color = images[floorTexture][texWidth * ty + tx];
-        color.a /= 3;
-        pixels[y * screenWidth + x] = color;
+        pixels[(y - screenHeight / 2) * screenWidth + x] = images[images.size() - 1][texWidth * ty + tx];
 
         // //ceiling (symmetrical, at screenHeight - y - 1 instead of y)
         // color = images[ceilingTexture][texWidth * ty + tx];
@@ -218,6 +226,8 @@ fb_texture = LoadTextureFromImage(fb_image);
       }
     }
 
+      }
+        inline void draw() {
 
           drawLevel(2);
           drawLevel(1);
@@ -370,7 +380,7 @@ fb_texture = LoadTextureFromImage(fb_image);
               // drawStart -= l * lineHeight;
               // drawEnd -= l * lineHeight;
 
-              if(drawStart < 0)drawStart = 0;
+              // if(drawStart < 0)drawStart = 0;
               if(drawEnd >=screenHeight)drawEnd =screenHeight - 1;
               //texturing calculations
               int texNum = level[hit.mapX][hit.mapY] - 1; //1 subtracted from it so that texture 0 can be used!
@@ -391,90 +401,8 @@ fb_texture = LoadTextureFromImage(fb_image);
               // Starting texture coordinate
               double texPos = (drawStart - screenHeight / 2 + lineHeight / 2) * step;
 
-              for (int y = drawStart; y < drawEnd; y++) {
-                int texY = (int)texPos & (texHeight - 1);
-                texPos += step;
-                
-                int fakeY = y - l * lineHeight;
-                if (fakeY < 0) fakeY = 0;
-
-                // DebugLog("> ", texY, ", ", texY, ", ", y, ", ", x);
-                // DebugLog(texY, ", ", texX, ", ", texNum, ", ", hit.mapX, ", ", hit.mapY);
-                
-
-                // int a = 255 - hit.dist * 20 ;
-                // c.a = a < 0 ? 0 :a;
-
-
-
-                pixels[fakeY * screenWidth + x] = images[texNum][texY * texWidth + texX];
-                if (hit.side == 1) pixels[fakeY * screenWidth + x].a /= 2;
-                // DebugLog("OK");
-                // DebugLog("OK");
-             }
-
-
-              // bool drawCeiling = hitIdx == hits.size() - 1 && l == 2;
-              // bool drawFloor = hitIdx == hits.size() - 1 && l == 0;
-              //
-              // // Calculate ceiling
-              // if (drawCeiling || drawFloor) {
-              //   // if (drawCeiling) drawStart -= (l + 1) * lineHeight;
-              //
-              //   //FLOOR CASTING (vertical version, directly after drawing the vertical wall stripe for the current x)
-              //   double floorXWall, floorYWall; //x, y position of the floor texel at the bottom of the wall
-              //
-              //   //4 different wall directions possible
-              //   if(hit.side == 0 && rayDirX > 0)
-              //   {
-              //     floorXWall = hit.mapX;
-              //     floorYWall = hit.mapY + wallX;
-              //   }
-              //   else if(hit.side == 0 && rayDirX < 0)
-              //   {
-              //     floorXWall = hit.mapX + 1.0;
-              //     floorYWall = hit.mapY + wallX;
-              //   }
-              //   else if(hit.side == 1 && rayDirY > 0)
-              //   {
-              //     floorXWall = hit.mapX + wallX;
-              //     floorYWall = hit.mapY;
-              //   }
-              //   else
-              //   {
-              //     floorXWall = hit.mapX + wallX;
-              //     floorYWall = hit.mapY + 1.0;
-              //   }
-              //
-              //   double distWall, distPlayer, currentDist;
-              //
-              //   // This seems to be relative to lineHeight
-              //   distWall =hit.dist / 2; // / ((l + 1) * 2);
-              //   distPlayer = 0.0;
-              //
-              //   if (drawEnd < 0) drawEnd = screenHeight; //becomes < 0 when the integer overflows
-              //
-              //   for(int y = drawEnd + 1; y < screenHeight; y++)
-              //   {
-              //     currentDist = screenHeight / (2.0 * y - screenHeight); //you could make a small lookup table for this instead
-              //
-              //     double weight = (currentDist - distPlayer) / (distWall - distPlayer);
-              //
-              //     double currentFloorX = weight * floorXWall + (1.0 - weight) * posX;
-              //     double currentFloorY = weight * floorYWall + (1.0 - weight) * posY;
-              //
-              //     int floorTexX, floorTexY;
-              //     floorTexX = int(currentFloorX * texWidth) % texWidth;
-              //     floorTexY = int(currentFloorY * texHeight) % texHeight;
-              //
-              //     if (drawCeiling) { //&& (y > (drawEnd + l * lineHeight))) {
-              //       int fakeY = y+ l * lineHeight;
-              //
-              //       if (fakeY < screenHeight) pixels[(screenHeight - fakeY) * screenWidth + x] = images[6][texWidth * floorTexY + floorTexX];
-              //     }
-              //     if (drawFloor) pixels[y * screenWidth + x] = images[3][texWidth * floorTexY + floorTexX];
-              //   }
-              // }
+              drawStart -= l * lineHeight;
+              DrawTexturePro(textures[texNum], Rectangle { (float)texX, 0, 1, 64 }, Rectangle { (float)x, (float)drawStart, 1, (float)lineHeight }, Vector2 { 0, 0, }, 0, hit.side == 0 ? WHITE: Color { 128, 128, 128, 255});
             }
           }
         }

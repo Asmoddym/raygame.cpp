@@ -51,7 +51,7 @@ int worldMapLevel2[mapWidth][mapHeight]=
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -149,6 +149,8 @@ namespace rg {
           DrawLine(100, 100, 100 - dirX * 20, 100 + dirY * 20, WHITE);
         }
 
+        struct Hit { int side; double dist; int mapX; int mapY; };
+
         void drawLevel(int l) {
           auto &level = l == 0 ? worldMap : worldMapLevel2;
 
@@ -175,8 +177,8 @@ namespace rg {
             int stepX;
             int stepY;
 
-            int hit = 0; //was there a wall hit?
-            int side; //was a NS or a EW wall hit?
+            // int hit = 0; //was there a wall hit?
+            // int side; //was a NS or a EW wall hit?
                       //calculate step and initial sideDist
             if (rayDirX < 0)
             {
@@ -199,62 +201,89 @@ namespace rg {
               sideDistY = (mapY + 1.0 - posY) * deltaDistY;
             }
 
-            //perform DDA
-            while (hit == 0)
-            {
-              //jump to next map square, either in x-direction, or in y-direction
-              if (sideDistX < sideDistY)
+
+            std::vector<Hit> hits;
+
+            while (mapX != -1 && mapY != -1 && mapX < mapWidth && mapY < mapHeight && hits.size() < 2) {
+              int hit = 0;
+              int side = 0;
+
+              //perform DDA
+              while (hit == 0)
               {
-                sideDistX += deltaDistX;
-                mapX += stepX;
-                side = 0;
+                //jump to next map square, either in x-direction, or in y-direction
+                if (sideDistX < sideDistY)
+                {
+                  sideDistX += deltaDistX;
+                  mapX += stepX;
+                  side = 0;
+                }
+                else
+                {
+                  sideDistY += deltaDistY;
+                  mapY += stepY;
+                  side = 1;
+                }
+                if (mapX == -1) break;
+                if (mapY == -1) break;
+                if (mapX >= mapWidth) break;
+                if (mapY >= mapHeight) break;
+                //Check if ray has hit a wall
+                if (level[mapX][mapY] > 0) hit = 1;
+              } 
+
+              if (hit) {
+                if(side == 0) perpWallDist = (sideDistX - deltaDistX);
+                else          perpWallDist = (sideDistY - deltaDistY);
+
+                hits.emplace(hits.begin(), Hit { side, perpWallDist, mapX, mapY });
               }
-              else
-              {
-                sideDistY += deltaDistY;
-                mapY += stepY;
-                side = 1;
-              }
-              if (mapX == -1) break;
-              if (mapY == -1) break;
-              //Check if ray has hit a wall
-              if (level[mapX][mapY] > 0) hit = 1;
-            } 
-
-            if (!hit) continue;
-            //Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
-            if(side == 0) perpWallDist = (sideDistX - deltaDistX);
-            else          perpWallDist = (sideDistY - deltaDistY);
-
-            //Calculate height of line to draw on screen
-            int lineHeight = (int)(2 *screenHeight / perpWallDist);
-
-            //calculate lowest an highest pixel to fill in current stripe
-            int drawStart = -lineHeight / 2 +screenHeight / 2;
-            // if(drawStart < 0)drawStart = 0;
-            int drawEnd = lineHeight / 2 +screenHeight / 2;
-            if(drawEnd >=screenHeight)drawEnd =screenHeight - 1;
-
-            if (l == 1) {
-              drawStart -= lineHeight;
-              drawEnd -= lineHeight;
             }
 
-            //texturing calculations
-            int texNum = level[mapX][mapY] - 1; //1 subtracted from it so that texture 0 can be used!
+            // DebugLog(hits.size());
 
-            //calculate value of wallX
-            double wallX; //where exactly the wall was hit
-            if (side == 0) wallX = posY + perpWallDist * rayDirY;
-            else           wallX = posX + perpWallDist * rayDirX;
-            wallX -= floor((wallX));
 
-            //x coordinate on the texture
-            int texX = int(wallX * double(texWidth));
-            if(side == 0 && rayDirX > 0) texX = texWidth - texX - 1;
-            if(side == 1 && rayDirY < 0) texX = texWidth - texX - 1;
+            if (hits.empty()) continue;
 
-            DrawTexturePro(textures[texNum], Rectangle { (float)texX, 0, 1, 64 }, Rectangle { (float)x, (float)drawStart, 1, (float)lineHeight }, Vector2 { 0, 0, }, 0, side == 0 ? WHITE: Color { 255, 255, 255, 128});
+            // Hits are drawn from farest to closest
+            
+            for (auto &&hit: hits) {
+              //Calculate height of line to draw on screen
+              int lineHeight = (int)(2 *screenHeight / hit.dist);
+
+              //calculate lowest an highest pixel to fill in current stripe
+              int drawStart = -lineHeight / 2 +screenHeight / 2;
+              // if(drawStart < 0)drawStart = 0;
+              int drawEnd = lineHeight / 2 +screenHeight / 2;
+              if(drawEnd >=screenHeight)drawEnd =screenHeight - 1;
+
+              if (l == 1) {
+                drawStart -= lineHeight;
+                drawEnd -= lineHeight;
+              }
+
+              //texturing calculations
+              int texNum = level[hit.mapX][hit.mapY] - 1; //1 subtracted from it so that texture 0 can be used!
+              // DebugLog("> ", hit.mapX, ", ", hit.mapY, ": ", texNum);
+
+              //calculate value of wallX
+              double wallX; //where exactly the wall was hit
+              if (hit.side == 0) wallX = posY + hit.dist * rayDirY;
+              else           wallX = posX + hit.dist * rayDirX;
+              wallX -= floor((wallX));
+
+              //x coordinate on the texture
+              int texX = int(wallX * double(texWidth));
+              if(hit.side == 0 && rayDirX > 0) texX = texWidth - texX - 1;
+              if(hit.side == 1 && rayDirY < 0) texX = texWidth - texX - 1;
+
+              DrawTexturePro(textures[texNum], Rectangle { (float)texX, 0, 1, 64 }, Rectangle { (float)x, (float)drawStart, 1, (float)lineHeight }, Vector2 { 0, 0, }, 0, hit.side == 0 ? WHITE: Color { 128, 128, 128, 255});
+            }
+
+
+            // if (!hit) continue;
+            //Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
+
           }
         }
     };

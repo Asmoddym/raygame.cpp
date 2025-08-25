@@ -23,7 +23,7 @@ int worldMap[mapWidth][mapHeight]=
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,1,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -131,24 +131,34 @@ namespace rg {
              images[images.size() - 1][y * texWidth + x].a  /= 3;
            }
          }
-
+shader = LoadShader(0, TextFormat("fog.glfw", 330));
+    target = LoadRenderTexture(screenWidth, screenHeight);
 
 fb_texture = LoadTextureFromImage(fb_image);
         };
 
+        Shader shader;
+        RenderTexture2D target;
+
         inline virtual void update() override {
-          BeginDrawing();
+
+          BeginTextureMode(target);      
           ClearBackground(BLACK);
           BeginMode2D(m_camera);
-
-          drawFloor();
-          UpdateTexture(fb_texture, pixels);
-          DrawTexture(fb_texture, 0, screenHeight / 2, WHITE);
+          // drawFloor();
+          // DrawTexture(fb_texture, 0, 0, WHITE);
+          // UpdateTexture(fb_texture, pixels);
           draw();
-
-          EndMode2D();
           DrawText(Concatenate(GetFPS(), " FPS (", Timer::since(), "ms)").c_str(), 10, 10, 20, LIME);
+          EndMode2D();
+          EndTextureMode();
+
+          BeginDrawing();
+          BeginShaderMode(shader);
+          DrawTextureRec(target.texture, Rectangle { 0, 0, (float)target.texture.width, (float)-target.texture.height }, Vector2 { 0, 0 }, WHITE);
+          EndShaderMode();
           EndDrawing();
+
 
           // for (int y = 0; y < screenHeight; y++) { for (int x = 0; x < screenWidth; x++) { pixels[y * screenWidth + x] = BLACK; }}
 
@@ -160,7 +170,7 @@ fb_texture = LoadTextureFromImage(fb_image);
  Image fb_image = Image {
         pixels,
         screenWidth,
-        screenHeight / 2,
+        screenHeight,
         1,
         PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
     };
@@ -175,7 +185,7 @@ fb_texture = LoadTextureFromImage(fb_image);
           float posZ = 0.5 * screenHeight;
 
           int drawFloor = 1;
-    for(int y = screenHeight / 2; drawFloor && y < screenHeight; y++)
+    for(int y = 0; drawFloor && y < screenHeight; y++)
     {
       // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
       float rayDirX0 = dirX - planeX;
@@ -217,12 +227,11 @@ fb_texture = LoadTextureFromImage(fb_image);
         // choose texture and draw the pixel
         int floorTexture = 3;
         int ceilingTexture = 6;
-        pixels[(y - screenHeight / 2) * screenWidth + x] = images[images.size() - 1][texWidth * ty + tx];
+        if (y > screenHeight / 2) pixels[y * screenWidth + x] = images[images.size() - 1][texWidth * ty + tx];
+        // pixels[(screenHeight - y - 1) * screenWidth + x] = images[images.size() - 1][texWidth * ty + tx];
 
         // //ceiling (symmetrical, at screenHeight - y - 1 instead of y)
-        // color = images[ceilingTexture][texWidth * ty + tx];
-        // color.a /= 2;
-        // pixels[(screenHeight - y - 1) * screenWidth + x] = color;
+        // pixels[y * screenWidth + x] = images[images.size() - 1][texWidth * ty + tx];
       }
     }
 
@@ -327,7 +336,7 @@ fb_texture = LoadTextureFromImage(fb_image);
 
             std::vector<Hit> hits;
 
-            while (mapX != -1 && mapY != -1 && mapX < mapWidth && mapY < mapHeight && hits.size() < 2) {
+            while (mapX != -1 && mapY != -1 && mapX < mapWidth && mapY < mapHeight && hits.size() < 10) {
               int hit = 0;
               int side = 0;
 
@@ -373,6 +382,10 @@ fb_texture = LoadTextureFromImage(fb_image);
               //Calculate height of line to draw on screen
               int lineHeight = (int)(2 * screenHeight / hit.dist);
 
+              int texNum = level[hit.mapX][hit.mapY] - 1; //1 subtracted from it so that texture 0 can be used!
+                                                          // DebugLog("> ", hit.mapX, ", ", hit.mapY, ": ", texNum);
+              // if (texNum == 6) lineHeight /= 2;
+
               //calculate lowest an highest pixel to fill in current stripe
               int drawStart = -lineHeight / 2 +screenHeight / 2;
               int drawEnd = lineHeight / 2 +screenHeight / 2;
@@ -383,8 +396,6 @@ fb_texture = LoadTextureFromImage(fb_image);
               // if(drawStart < 0)drawStart = 0;
               if(drawEnd >=screenHeight)drawEnd =screenHeight - 1;
               //texturing calculations
-              int texNum = level[hit.mapX][hit.mapY] - 1; //1 subtracted from it so that texture 0 can be used!
-                                                          // DebugLog("> ", hit.mapX, ", ", hit.mapY, ": ", texNum);
 
                                                           //calculate value of wallX
               double wallX; //where exactly the wall was hit
@@ -402,7 +413,12 @@ fb_texture = LoadTextureFromImage(fb_image);
               double texPos = (drawStart - screenHeight / 2 + lineHeight / 2) * step;
 
               drawStart -= l * lineHeight;
-              DrawTexturePro(textures[texNum], Rectangle { (float)texX, 0, 1, 64 }, Rectangle { (float)x, (float)drawStart, 1, (float)lineHeight }, Vector2 { 0, 0, }, 0, hit.side == 0 ? WHITE: Color { 128, 128, 128, 255});
+              // if (texNum == 6) { // 7 actually
+              //   DrawTexturePro(textures[texNum], Rectangle { (float)texX, 0, 1, 32 }, Rectangle { (float)x, (float)drawStart + 2 * lineHeight / 3, 1, (float)lineHeight / 3}, Vector2 { 0, 0, }, 0, hit.side == 0 ? WHITE: Color { 128, 128, 128, 255});
+              // } else {
+                // DrawTexturePro(textures[texNum], Rectangle { (float)texX, 0, 1, 64 }, Rectangle { (float)x, (float)drawStart, 1, (float)lineHeight }, Vector2 { 0, 0, }, 0, hit.side == 0 ? WHITE: Color { 128, 128, 128, 255});
+                DrawTexturePro(textures[texNum], Rectangle { (float)texX, 0, 1, 64 }, Rectangle { (float)x, (float)drawStart, 1, (float)lineHeight }, Vector2 { 0, 0, }, 0, texNum == 6 ?  Color { 128, 128, 128, 100 } : WHITE);
+              // }
             }
           }
         }

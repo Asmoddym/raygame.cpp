@@ -145,9 +145,9 @@ fb_texture = LoadTextureFromImage(fb_image);
           BeginTextureMode(target);      
           ClearBackground(BLACK);
           BeginMode2D(m_camera);
-          // drawFloor();
-          // DrawTexture(fb_texture, 0, 0, WHITE);
-          // UpdateTexture(fb_texture, pixels);
+          drawFloor();
+          DrawTexture(fb_texture, 0, 0, WHITE);
+          UpdateTexture(fb_texture, pixels);
           draw();
           DrawText(Concatenate(GetFPS(), " FPS (", Timer::since(), "ms)").c_str(), 10, 10, 20, LIME);
           EndMode2D();
@@ -236,6 +236,8 @@ fb_texture = LoadTextureFromImage(fb_image);
     }
 
       }
+
+      int mode = 0;
         inline void draw() {
 
           drawLevel(2);
@@ -279,7 +281,10 @@ fb_texture = LoadTextureFromImage(fb_image);
             planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);
           }
           DrawLine(100, 100, 100 - dirX * 20, 100 + dirY * 20, WHITE);
-        }
+          if (IsKeyPressed(KEY_A)) mode++;
+
+          mode %= 3;
+        } 
 
         struct Hit { int side; double dist; int mapX; int mapY; };
 
@@ -336,7 +341,8 @@ fb_texture = LoadTextureFromImage(fb_image);
 
             std::vector<Hit> hits;
 
-            while (mapX != -1 && mapY != -1 && mapX < mapWidth && mapY < mapHeight && hits.size() < 10) {
+
+            while (mapX != -1 && mapY != -1 && mapX < mapWidth && mapY < mapHeight && hits.size() <4) {
               int hit = 0;
               int side = 0;
 
@@ -368,7 +374,50 @@ fb_texture = LoadTextureFromImage(fb_image);
                 if(side == 0) perpWallDist = (sideDistX - deltaDistX);
                 else          perpWallDist = (sideDistY - deltaDistY);
 
-                hits.emplace(hits.begin(), Hit { side, perpWallDist, mapX, mapY });
+                if (mode == 0 || mode == 2) hits.emplace(hits.begin(), Hit { side, perpWallDist, mapX, mapY });
+
+                // DebugLog("Registering ", sideDistX, ", ", sideDistY, ", ", mapX, ", ", mapY, " (", deltaDistX, " to next X, ", deltaDistY, " to next Y");
+                //length of ray from one x or y-side to next x or y-side
+                deltaDistX = -deltaDistX;
+                deltaDistY = -deltaDistY;
+
+                //jump to next map square, either in x-direction, or in y-direction
+                if (sideDistX < sideDistY)
+                {
+                  sideDistX += deltaDistX;
+                  mapX += stepX;
+                  side = 0;
+                }
+                else
+                {
+                  sideDistY += deltaDistY;
+                  mapY += stepY;
+                  side = 1;
+                }
+                if (mapX == -1) break;
+                if (mapY == -1) break;
+                if (mapX >= mapWidth) break;
+                if (mapY >= mapHeight) break;
+                //Check if ray has hit a wall
+                if (level[mapX][mapY] > 0) hit = 1;
+
+              if (hit) {
+                if(side == 0) perpWallDist = (sideDistX - deltaDistX);
+                else          perpWallDist = (sideDistY - deltaDistY);
+
+
+                if (side == 0) {
+                  sideDistX -= deltaDistX;
+                  mapX -= stepX;
+                } else {
+                  sideDistY -= deltaDistY;
+                  mapY -= stepY;
+                }
+                if (mode == 0 || mode == 1) hits.emplace(hits.begin(), Hit { side, perpWallDist, mapX, mapY });
+                deltaDistX = -deltaDistX;
+                deltaDistY = -deltaDistY;
+                 }
+
               }
             }
 
@@ -376,7 +425,9 @@ fb_texture = LoadTextureFromImage(fb_image);
 
             // Hits are drawn from farest to closest
             
+            // DebugLog(hits.size());
             int hitIdx = -1;
+
             for (auto &&hit: hits) {
               hitIdx++;
               //Calculate height of line to draw on screen
@@ -413,12 +464,11 @@ fb_texture = LoadTextureFromImage(fb_image);
               double texPos = (drawStart - screenHeight / 2 + lineHeight / 2) * step;
 
               drawStart -= l * lineHeight;
-              // if (texNum == 6) { // 7 actually
-              //   DrawTexturePro(textures[texNum], Rectangle { (float)texX, 0, 1, 32 }, Rectangle { (float)x, (float)drawStart + 2 * lineHeight / 3, 1, (float)lineHeight / 3}, Vector2 { 0, 0, }, 0, hit.side == 0 ? WHITE: Color { 128, 128, 128, 255});
-              // } else {
-                // DrawTexturePro(textures[texNum], Rectangle { (float)texX, 0, 1, 64 }, Rectangle { (float)x, (float)drawStart, 1, (float)lineHeight }, Vector2 { 0, 0, }, 0, hit.side == 0 ? WHITE: Color { 128, 128, 128, 255});
-                DrawTexturePro(textures[texNum], Rectangle { (float)texX, 0, 1, 64 }, Rectangle { (float)x, (float)drawStart, 1, (float)lineHeight }, Vector2 { 0, 0, }, 0, texNum == 6 ?  Color { 128, 128, 128, 100 } : WHITE);
-              // }
+              if (texNum == 6) { // 7 actually
+                DrawTexturePro(textures[texNum], Rectangle { (float)texX, 0, 1, 32 }, Rectangle { (float)x, (float)drawStart + 2 * lineHeight / 3, 1, (float)lineHeight / 3}, Vector2 { 0, 0, }, 0, hit.side == 0 ? WHITE: Color { 128, 128, 128, 255});
+              } else {
+                DrawTexturePro(textures[texNum], Rectangle { (float)texX, 0, 1, 64 }, Rectangle { (float)x, (float)drawStart, 1, (float)lineHeight }, Vector2 { 0, 0, }, 0, hit.side == 0 ? WHITE: Color { 128, 128, 128, 255});
+              }
             }
           }
         }

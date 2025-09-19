@@ -1,0 +1,3 @@
+neovide.exe . &
+
+exit

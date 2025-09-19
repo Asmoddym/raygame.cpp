@@ -1,7 +1,6 @@
 #ifndef MACRO_APPLICATION_H_
 # define MACRO_APPLICATION_H_
 
-# include "raylib.h"
 # include "Registry.h"
 # include "SystemManager.h"
 
@@ -12,7 +11,6 @@ namespace macro {
       SystemManager m_systemManager { m_registry };
 
       int m_entityCount = 0;
-      Camera2D m_camera = { 0 };
 
     public:
       Application();

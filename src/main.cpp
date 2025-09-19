@@ -65,7 +65,7 @@ int main() {
   auto wall = app.generateEntity();
   wall
     .set<macro::component::Rectangle>(600.f, 30.f, 32, 32)
-    .set<macro::component::Texture>("wabbit_alpha.png")
+    .set<macro::component::Texture>("cursor1.png")
     .set<rg::component::Movable>(false);
 
   app.getSystemManager().set<macro::system::Draw>();

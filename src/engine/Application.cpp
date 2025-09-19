@@ -4,7 +4,7 @@
 #include "resource_dir.h"
 
 #include "lib/Timer.h"
-#include "lib/Concatenate.h"
+#include "component/Camera.h"
 
 macro::Application::Application() {
   DebugLog("Constructing Application");
@@ -17,26 +17,16 @@ macro::Application::Application() {
   SearchAndSetResourceDir("resources");
   SetTargetFPS(144);
 
-  // m_camera.offset = ::Vector2 { size.x / 2.f, size.y / 2.f };
-  m_camera.offset = ::Vector2 { 0, 0 };
-  m_camera.rotation = 0.0f;
-  m_camera.zoom = 1.0f;
+  generateEntity().set<component::Camera>(size);
 }
 
 void macro::Application::run() {
   Log::d("Running!");
 
   while (!WindowShouldClose()) {
-    BeginDrawing();
-    BeginMode2D(m_camera);
     Timer::reset();
-
-    ClearBackground(BLACK);
+    
     m_systemManager.update();
-
-    EndMode2D();
-    DrawText(Concatenate(GetFPS(), " FPS (", Timer::since(), "ms)").c_str(), 10, 10, 20, LIME);
-    EndDrawing();
   }
 
   CloseWindow();

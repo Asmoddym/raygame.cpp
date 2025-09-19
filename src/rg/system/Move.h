@@ -2,6 +2,7 @@
 # define RG_SYSTEM_MOVE_H_
 
 # include "rg/components.h"
+# include "component/Camera.h"
 
 namespace rg {
   namespace system {
@@ -26,10 +27,14 @@ namespace rg {
         auto &rect = entity.get<macro::component::Rectangle>().value;
 
         if (entity.has<component::Controllable>()) {
+          auto &camera = registry.get<macro::component::Camera>(0).camera;
+
           if (IsKeyDown(KEY_LEFT)) { rect.x -= 5; }
           if (IsKeyDown(KEY_RIGHT)) { rect.x += 5; }
           if (IsKeyDown(KEY_UP)) { rect.y -= 5; }
           if (IsKeyDown(KEY_DOWN)) { rect.y += 5; }
+
+          camera.target = ::Vector2 { rect.x, rect.y };
         }
       }
     };

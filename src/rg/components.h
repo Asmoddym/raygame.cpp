@@ -2,7 +2,7 @@
 # define RG_COMPONENTS_H_
 
 # include "macro.h"
-# include "component/Controllable.hpp"
+# include "component/Controllable.h"
 
 namespace rg {
   namespace component {

@@ -2,13 +2,19 @@
 # define MACRO_SYSTEM_DRAW_H_
 
 # include "System.h"
+# include "raylib.h"
+# include "component/Camera.h"
 
 namespace macro {
   namespace system {
     class Draw : public System {
-      DefineSystem(Draw, UPDATE_EACH_FRAME);
+      private:
+        Camera2D &m_camera;
 
-      virtual void update() override;
+      public:
+        DefineSystemWithAdditionalInitializes(Draw, UPDATE_EACH_FRAME, m_camera { registry.get<component::Camera>(0).camera });
+
+        virtual void update() override;
     };
   }
 }

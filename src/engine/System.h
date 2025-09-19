@@ -9,6 +9,10 @@
   inline Name(::macro::Registry &r, double u = -1) : System { r, UpdateSpan } {} \
   private:
 
+# define DefineSystemWithAdditionalInitializes(Name, UpdateSpan, BLOCK) public: \
+  inline Name(::macro::Registry &r, double u = -1) : System { r, UpdateSpan }, BLOCK {} \
+  private:
+
 namespace macro {
   class System {
     private:

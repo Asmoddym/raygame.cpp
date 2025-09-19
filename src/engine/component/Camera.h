@@ -13,6 +13,7 @@ namespace macro {
       inline Camera(::Vector2 size) {
         camera.target = ::Vector2 { 0, 0 };
         camera.offset = ::Vector2 { size.x / 2, size.y / 2 };
+        camera.offset = ::Vector2 { 0, 0 };
         camera.rotation = 0.0f;
         camera.zoom = 1.0f;
       }

@@ -1,14 +1,13 @@
 #ifndef RG_SYSTEM_MOVE_H_
 # define RG_SYSTEM_MOVE_H_
 
-#include "raylib.h"
 # include "rg/components.h"
 # include "component/Camera.h"
 
 namespace rg {
   namespace system {
     class Move: public macro::System {
-      DefineSystem(Move, 16);
+      DefineSystem(Move, 16)
 
     public:
       inline virtual void update() override {

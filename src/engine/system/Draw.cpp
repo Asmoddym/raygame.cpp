@@ -2,11 +2,12 @@
 
 #include "component/Texture.h"
 #include "component/Rectangle.h"
-
-#include "lib/Concatenate.h"
 #include "lib/Timer.h"
 
 void macro::system::Draw::update() {
+  auto since = Timer::since();
+  Timer::reset();
+
   BeginDrawing();
   ClearBackground(BLACK);
   BeginMode2D(m_camera);
@@ -18,7 +19,9 @@ void macro::system::Draw::update() {
     DrawTexture(texture, (int)rect.x, (int)rect.y, WHITE);
   });
 
+  auto render_time = Timer::since();
+
   EndMode2D();
-  DrawText(Concatenate(GetFPS(), " FPS (", Timer::since(), "ms)").c_str(), 10, 10, 20, LIME);
+  DrawText(TextFormat("%d FPS\n%.03fms compute\n%.03fms render", GetFPS(), since, render_time), 10, 10, 20, LIME);
   EndDrawing();
 }

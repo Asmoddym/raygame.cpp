@@ -15,7 +15,6 @@ macro::Application::Application() {
   SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
   InitWindow((int)size.x, (int)size.y, "raylib [core] example - 2d camera");
   SearchAndSetResourceDir("resources");
-  SetTargetFPS(144);
 
   generateEntity().set<component::Camera>(size);
 }
@@ -25,7 +24,6 @@ void macro::Application::run() {
 
   while (!WindowShouldClose()) {
     Timer::reset();
-    
     m_systemManager.update();
   }
 

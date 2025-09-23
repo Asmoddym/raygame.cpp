@@ -164,8 +164,7 @@ if (downloadRaylib) then
         }
         files {"../src/**.c", "../src/**.cpp", "../src/**.h", "../include/**.h" }
     
-        includedirs { "../src", "../src/engine" }
-        includedirs { "../include" }
+        includedirs { "../src", "../src/engine", "../lib/raygui/src", "../include" }
 
         links {"raylib"}
 

@@ -6,6 +6,9 @@
 # include "component/Texture.h"
 # include "component/Rectangle.h"
 # include "lib/Timer.h"
+# include "raylib.h"
+
+#include "raygui.h"
 
 namespace macro {
   namespace system {
@@ -34,6 +37,7 @@ namespace macro {
           auto render_time = Timer::since();
 
           EndMode2D();
+          if (GuiButton(Rectangle{ 24, 24, 120, 30 }, "#191#Show Message")) { exit(1); }
           DrawText(TextFormat("%d FPS\n%.03fms compute\n%.03fms render", GetFPS(), since, render_time), 10, 10, 20, LIME);
           EndDrawing();
         }

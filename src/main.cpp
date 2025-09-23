@@ -7,11 +7,11 @@ struct Map {
   static std::vector<std::string> const lines() {
     return {
       "00000000000000000000000000000000000", "0000", "0000000", "000000000000000000000", "°1209234°02943°0493", "éràç_ékjfh slkfgjhqs lfgksjh lkjh ", "mcvioqsdjhf lsqkjfgh sdlfkjsdh flsdkhjf sdlfkjsdh flsdkhjf sdlfkjehfglaziuhfg zlkjh ",
-      "00000000000000000000000000000000000", "0000", "0000000", "000000000000000000000", "°1209234°02943°0493", "éràç_ékjfh slkfgjhqs lfgksjh lkjh ", "mcvioqsdjhf lsqkjfgh sdlfkjsdh flsdkhjf sdlfkjsdh flsdkhjf sdlfkjehfglaziuhfg zlkjh ",
-      "00000000000000000000000000000000000", "0000", "0000000", "000000000000000000000", "°1209234°02943°0493", "éràç_ékjfh slkfgjhqs lfgksjh lkjh ", "mcvioqsdjhf lsqkjfgh sdlfkjsdh flsdkhjf sdlfkjsdh flsdkhjf sdlfkjehfglaziuhfg zlkjh ",
-    "00000000000000000000000000000000000", "0000", "0000000", "000000000000000000000", "°1209234°02943°0493", "éràç_ékjfh slkfgjhqs lfgksjh lkjh ", "mcvioqsdjhf lsqkjfgh sdlfkjsdh flsdkhjf sdlfkjsdh flsdkhjf sdlfkjehfglaziuhfg zlkjh ",
-    "00000000000000000000000000000000000", "0000", "0000000", "000000000000000000000", "°1209234°02943°0493", "éràç_ékjfh slkfgjhqs lfgksjh lkjh ", "mcvioqsdjhf lsqkjfgh sdlfkjsdh flsdkhjf sdlfkjsdh flsdkhjf sdlfkjehfglaziuhfg zlkjh ",
-    "00000000000000000000000000000000000", "0000", "0000000", "000000000000000000000", "°1209234°02943°0493", "éràç_ékjfh slkfgjhqs lfgksjh lkjh ", "mcvioqsdjhf lsqkjfgh sdlfkjsdh flsdkhjf sdlfkjsdh flsdkhjf sdlfkjehfglaziuhfg zlkjh ",
+        "00000000000000000000000000000000000", "0000", "0000000", "000000000000000000000", "°1209234°02943°0493", "éràç_ékjfh slkfgjhqs lfgksjh lkjh ", "mcvioqsdjhf lsqkjfgh sdlfkjsdh flsdkhjf sdlfkjsdh flsdkhjf sdlfkjehfglaziuhfg zlkjh ",
+        "00000000000000000000000000000000000", "0000", "0000000", "000000000000000000000", "°1209234°02943°0493", "éràç_ékjfh slkfgjhqs lfgksjh lkjh ", "mcvioqsdjhf lsqkjfgh sdlfkjsdh flsdkhjf sdlfkjsdh flsdkhjf sdlfkjehfglaziuhfg zlkjh ",
+        "00000000000000000000000000000000000", "0000", "0000000", "000000000000000000000", "°1209234°02943°0493", "éràç_ékjfh slkfgjhqs lfgksjh lkjh ", "mcvioqsdjhf lsqkjfgh sdlfkjsdh flsdkhjf sdlfkjsdh flsdkhjf sdlfkjehfglaziuhfg zlkjh ",
+        "00000000000000000000000000000000000", "0000", "0000000", "000000000000000000000", "°1209234°02943°0493", "éràç_ékjfh slkfgjhqs lfgksjh lkjh ", "mcvioqsdjhf lsqkjfgh sdlfkjsdh flsdkhjf sdlfkjsdh flsdkhjf sdlfkjehfglaziuhfg zlkjh ",
+        "00000000000000000000000000000000000", "0000", "0000000", "000000000000000000000", "°1209234°02943°0493", "éràç_ékjfh slkfgjhqs lfgksjh lkjh ", "mcvioqsdjhf lsqkjfgh sdlfkjsdh flsdkhjf sdlfkjsdh flsdkhjf sdlfkjehfglaziuhfg zlkjh ",
     };
   }
 

@@ -1,3 +1,6 @@
 [submodule "build/export-compile-commands"]
 	path = build/export-compile-commands
 	url = https://github.com/Asmoddym/premake-export-compile-commands
+[submodule "lib/raygui"]
+	path = lib/raygui
+	url = https://github.com/raysan5/raygui

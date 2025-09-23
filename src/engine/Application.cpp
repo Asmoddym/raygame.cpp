@@ -6,6 +6,9 @@
 #include "lib/Timer.h"
 #include "component/Camera.h"
 
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
+
 macro::Application::Application() {
   DebugLog("Constructing Application");
 

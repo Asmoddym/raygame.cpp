@@ -17,8 +17,8 @@ namespace macro {
       inline Entity(Registry &r, int i) : registry { r }, id { i } {}
       inline ~Entity() {}
 
-      template<typename... Cs, typename... Args>
-        inline Entity &set(Args&&... args) { registry.set<Cs...>(id, args...); return *this; }
+      template<typename C, typename... Args>
+        inline Entity &set(Args&&... args) { registry.set<C>(id, args...); return *this; }
 
       template<typename C>
         inline C &get() { return registry.get<C>(id); }

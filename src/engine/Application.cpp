@@ -5,6 +5,7 @@
 
 #include "lib/Timer.h"
 #include "component/Camera.h"
+#include "system/UpdateSprites.h"
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
@@ -12,7 +13,7 @@
 macro::Application::Application() {
   DebugLog("Constructing Application");
 
-  Vector2 size = Vector2 { 1280, 720 };
+  Vector2 size = Vector2 { 1600, 900 };
 
   // Taken from https://github.com/raysan5/raylib/discussions/2999, basically OSX has a weird way through HigpDPI to handle their resolutions
   SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
@@ -20,6 +21,7 @@ macro::Application::Application() {
   SearchAndSetResourceDir("resources");
 
   generateEntity().set<component::Camera>(size);
+  m_systemManager.set<system::UpdateSprites>();
 }
 
 void macro::Application::run() {

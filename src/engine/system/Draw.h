@@ -3,12 +3,12 @@
 
 # include "System.h"
 # include "component/Camera.h"
+# include "component/Sprite.h"
 # include "component/Texture.h"
 # include "component/Rectangle.h"
 # include "lib/Timer.h"
 # include "raylib.h"
-
-#include "raygui.h"
+# include "raygui.h"
 
 namespace macro {
   namespace system {
@@ -32,7 +32,14 @@ namespace macro {
               auto &texture = entity.get<component::Texture>().texture;
 
               DrawTexture(texture, (int)rect.x, (int)rect.y, WHITE);
-              });
+          });
+
+          registry.forEach<component::Rectangle, component::Sprite>([&](Entity entity) {
+              auto &sprite = entity.get<component::Sprite>();
+              auto &rect = entity.get<component::Rectangle>().value;
+
+              sprite.draw(rect);
+          });
 
           auto render_time = Timer::since();
 

@@ -10,6 +10,7 @@
 # include "component/Texture.h"
 # include "component/Rectangle.h"
 # include "component/Value.h"
+# include "component/Position.h"
 
 // Systems
 
